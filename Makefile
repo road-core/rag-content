@@ -1,5 +1,5 @@
 install-tools: ## Install required utilities/tools
-	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install --upgrade pip pdm; }
+	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip install --no-cache-dir --upgrade pip pdm==2.18.1; }
 
 pdm-lock-check: ## Check that the pdm.lock file is in a good shape
 	pdm lock --check
@@ -30,6 +30,12 @@ update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 		scripts/get_ocp_plaintext_docs.sh $$OCP_VERSION; \
 	done
 	scripts/get_runbooks.sh
+
+update-model: ## Update the local copy of the embedding model
+	@rm -rf ./embeddings_model
+	@python scripts/download_embeddings_model.py -l ./embeddings_model -r sentence-transformers/all-mpnet-base-v2
+	@split -b 45M embeddings_model/model.safetensors embeddings_model/model.safetensors.part
+	@rm embeddings_model/model.safetensors
 
 build-image: ## Build a rag-content container image.
 	podman build -t rag-content .

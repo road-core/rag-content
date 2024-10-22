@@ -29,6 +29,12 @@ spec:
     value: Containerfile
   - name: path-context
     value: .
+  - name: prefetch-input
+    value: '{"type": "pip", "path": ".", "allow_binary": "true"}'
+  - name: hermetic
+    value: "true"
+  - name: build-args
+    value: [HERMETIC=true]
   timeouts:
     pipeline: "9h0m0s"
     tasks: "9h0m0s"
@@ -214,6 +220,9 @@ spec:
       - name: netrc
         workspace: netrc
     - name: build-container
+      env:
+      - name: TMPDIR
+        value: /workspace/buildah-tmp
       params:
       - name: PLATFORM
         value: linux-c4xlarge/amd64
@@ -506,7 +515,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 4Gi
+            storage: 24Gi
       status: {}
   - name: git-auth
     secret:
