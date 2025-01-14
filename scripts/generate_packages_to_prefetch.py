@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """Generate list of packages to be prefetched in Cachi2 and used in Konflux for hermetic build.
 
@@ -147,7 +147,7 @@ def generate_packages_to_be_build(work_directory):
 
     # generate file requirements-build.in
     command = (
-        "python pip_find_builddeps.py requirements.txt --append "
+        "python3 pip_find_builddeps.py requirements.txt --append "
         + f"--only-write-on-update --ignore-errors --allow-binary -o {infile}"
     )
     shell(command, work_directory)
