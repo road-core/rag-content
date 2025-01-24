@@ -159,14 +159,17 @@ def save_metadata(start_time, args, embedding_dimension,
         file.write(json.dumps(metadata))
 
 
-def process_documents(docs_dir, metadata_func=None,
-                      required_exts=None, file_extractor=None):
+def process_documents(docs_dir, metadata_func=None, required_exts=None,
+                      file_extractor=None, num_workers=0):
+    if num_workers <= 0:
+        num_workers = None
+
     return SimpleDirectoryReader(
         docs_dir,
         recursive=True,
         file_metadata=metadata_func,
         required_exts=required_exts,
-        file_extractor=file_extractor).load_data()
+        file_extractor=file_extractor).load_data(num_workers=num_workers)
 
 
 def get_settings(chunk_size, chunk_overlap, model_dir):

@@ -2,6 +2,7 @@
 
 """Utility script to generate embeddings."""
 
+import multiprocessing
 import os
 import sys
 import time
@@ -22,21 +23,32 @@ from common_embeddings import (
     print_unreachable_docs_warning
 )
 
+# The OpenStack documentation base URL
 OS_DOCS_ROOT_URL = "https://docs.openstack.org"
 
 
-def os_metadata_func(file_path: str) -> Dict:
-    """Populate metadata for an OpenStack documentation page.
+class OSMetadata(object):
 
-    Args:
-        file_path: str: file path in str
-    """
-    docs_url = lambda file_path: (  # noqa: E731
-        OS_DOCS_ROOT_URL
-        + file_path.removeprefix(EMBEDDINGS_ROOT_DIR).removesuffix("txt")
-        + "html"
-    )
-    return file_metadata_func(file_path, docs_url)
+    def __init__(self, docs_dir, base_url):
+        super(OSMetadata, self).__init__()
+        self._base_path = os.path.abspath(docs_dir)
+        if self._base_path.endswith('/'):
+            self._base_path = self._base_path[:-1]
+
+        self.base_url = base_url
+
+    def set_metadata(self, file_path: str) -> Dict:
+        """Populate metadata for an OpenStack documentation page.
+
+        Args:
+            file_path: str: file path in str
+        """
+        docs_url = lambda file_path: (  # noqa: E731
+            self.base_url
+            + file_path.removeprefix(self._base_path).removesuffix("txt")
+            + "html"
+        )
+        return file_metadata_func(file_path, docs_url)
 
 
 if __name__ == "__main__":
@@ -44,6 +56,13 @@ if __name__ == "__main__":
     start_time = time.time()
 
     parser = get_common_arg_parser()
+    parser.add_argument(
+        "-w",
+        "--workers",
+        type=int,
+        default=multiprocessing.cpu_count(),
+        help=("Number of workers (defaults to number of CPUs) to parallelize "
+              "the data loading. Set to a negative value to disable."))
     args = parser.parse_args()
     print(f"Arguments used: {args}")
 
@@ -52,10 +71,6 @@ if __name__ == "__main__":
     if PERSIST_FOLDER == "":
         PERSIST_FOLDER = "."
 
-    EMBEDDINGS_ROOT_DIR = os.path.abspath(args.folder)
-    if EMBEDDINGS_ROOT_DIR.endswith("/"):
-        EMBEDDINGS_ROOT_DIR = EMBEDDINGS_ROOT_DIR[:-1]
-
     os.environ["HF_HOME"] = args.model_dir
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
@@ -63,8 +78,10 @@ if __name__ == "__main__":
         args.chunk, args.overlap, args.model_dir)
 
     # Load documents
+    os_metadata = OSMetadata(args.folder, OS_DOCS_ROOT_URL)
     documents = process_documents(
-        args.folder, metadata_func=os_metadata_func, required_exts=['.txt',])
+        args.folder, metadata_func=os_metadata.set_metadata,
+        required_exts=['.txt',], num_workers=args.workers)
 
     # Create chunks/nodes
     nodes = settings.text_splitter.get_nodes_from_documents(documents)
