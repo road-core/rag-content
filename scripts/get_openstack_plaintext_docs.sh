@@ -23,7 +23,7 @@ deps =
   -c{env:TOX_CONSTRAINTS_FILE:https://releases.openstack.org/constraints/upper/$OS_VERSION}
   -r{toxinidir}/doc/requirements.txt
 commands =
-  sphinx-build -W --keep-going -j auto -b text doc/source doc/build/text
+  sphinx-build --keep-going -j auto -b text doc/source doc/build/text
 "
 # The current directory where the script was invoked
 CURR_DIR=$(pwd)
