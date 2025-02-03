@@ -55,7 +55,7 @@ The embedding model used by OpenShift Lightspeed is the
 the following command:
 
 ```
-python scripts/download_embeddings_model.py -l ./embeddings_model/ -r sentence-transformers/all-mpnet-base-v2
+./scripts/download_embeddings_model.py -l ./embeddings_model/ -r sentence-transformers/all-mpnet-base-v2
 ```
 
 ## Generating the RAG vector database
@@ -67,7 +67,7 @@ documentation version 4.15 run the following commands:
 ```
 mkdir -p vector_db/ocp_product_docs/4.15
 
-python scripts/generate_embeddings.py -o ./vector_db/ocp_product_docs/4.15 -f ocp-product-docs-plaintext/4.15/ -r runbooks/ -md embeddings_model/ -mn sentence-transformers/all-mpnet-base-v2 -v 4.15 -i ocp-product-docs-4_15
+./scripts/generate_embeddings.py -o ./vector_db/ocp_product_docs/4.15 -f ocp-product-docs-plaintext/4.15/ -r runbooks/ -md embeddings_model/ -mn sentence-transformers/all-mpnet-base-v2 -v 4.15 -i ocp-product-docs-4_15
 ```
 
 Once the command is done, you can find the vector database at
