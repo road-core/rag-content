@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Utility script to download models from HuggingFace."""
 
 import argparse
