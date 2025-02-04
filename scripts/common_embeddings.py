@@ -6,12 +6,13 @@ import argparse
 import json
 import os
 import time
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Sequence, Tuple
+from pathlib import Path
 
 import faiss
 from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex
 from llama_index.core.llms.utils import resolve_llm
-from llama_index.core.schema import TextNode
+from llama_index.core.schema import TextNode, BaseNode
 
 from llama_index.core.storage.storage_context import StorageContext
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -131,8 +132,10 @@ def filter_out_invalid_nodes(nodes) -> List:
     return good_nodes
 
 
-def save_index(nodes, storage_context, index, persist_folder) -> None:
+def save_index(
+        nodes: Sequence[BaseNode], storage_context: StorageContext, index: str, persist_folder: str) -> None:
     """Create and save the Vector Store Index"""
+
     idx = VectorStoreIndex(
         nodes,
         storage_context=storage_context,
@@ -141,8 +144,8 @@ def save_index(nodes, storage_context, index, persist_folder) -> None:
     idx.storage_context.persist(persist_dir=persist_folder)
 
 
-def save_metadata(start_time, args, embedding_dimension,
-                  documents, persist_folder) -> None:
+def save_metadata(start_time: float, args: argparse.Namespace, embedding_dimension: int,
+                  documents: SimpleDirectoryReader, persist_folder: str) -> None:
     """Create and save the metadata"""
     metadata: dict = {}
     metadata["execution-time"] = time.time() - start_time
@@ -159,8 +162,11 @@ def save_metadata(start_time, args, embedding_dimension,
         file.write(json.dumps(metadata))
 
 
-def process_documents(docs_dir, metadata_func=None, required_exts=None,
-                      file_extractor=None, num_workers=0):
+def process_documents(docs_dir: Path, metadata_func: Callable,
+                      required_exts : List[str] | None = None,
+                      file_extractor: Dict | None = None,
+                      num_workers: int = 0) -> SimpleDirectoryReader:
+
     if num_workers <= 0:
         num_workers = None
 
@@ -172,7 +178,7 @@ def process_documents(docs_dir, metadata_func=None, required_exts=None,
         file_extractor=file_extractor).load_data(num_workers=num_workers)
 
 
-def get_settings(chunk_size, chunk_overlap, model_dir):
+def get_settings(chunk_size: int, chunk_overlap: int, model_dir: str) -> Tuple:
     Settings.chunk_size = chunk_size
     Settings.chunk_overlap = chunk_overlap
     Settings.embed_model = HuggingFaceEmbedding(model_name=model_dir)
@@ -187,10 +193,10 @@ def get_settings(chunk_size, chunk_overlap, model_dir):
     return Settings, embedding_dimension, storage_context
 
 
-def print_unreachable_docs_warning():
-    if UNREACHABLE_DOCS > 0:
-        print("WARNING:\n"
-            f"There were documents with {UNREACHABLE_DOCS} unreachable URLs, "
-            "grep the log for UNREACHABLE.\n"
-            "Please update the plain text."
-        )
+def print_unreachable_docs_warning(n_unreachable_urls: int = UNREACHABLE_DOCS):
+
+    print("WARNING:\n"
+        f"There were documents with {n_unreachable_urls} unreachable URLs, "
+        "grep the log for UNREACHABLE.\n"
+        "Please update the plain text."
+    )
