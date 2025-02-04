@@ -43,8 +43,8 @@ if __name__ == "__main__":
         index_id=args.product_index,
     )
     if args.node is not None:
-        print(storage_context.docstore.get_node(args.node).__repr__())
+        print(repr(storage_context.docstore.get_node(args.node)))
     else:
         retriever = vector_index.as_retriever(similarity_top_k=args.top_k)
         for n in retriever.retrieve(args.query):
-            print(n.__repr__())
+            print(repr(n))
