@@ -100,7 +100,7 @@ if __name__ == "__main__":
         required_exts=['.md',], file_extractor={".md": FlatReader()})
 
     # Create chunks/nodes
-    runbook_nodes = settings.text_splitter.get_nodes_from_documents(documents)
+    runbook_nodes = settings.text_splitter.get_nodes_from_documents(runbook_documents)
 
     # Extend nodes with runbook_nodes
     good_nodes.extend(runbook_nodes)
