@@ -6,13 +6,13 @@ import argparse
 import json
 import os
 import time
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Sequence
 from pathlib import Path
 
 import faiss
 from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex
 from llama_index.core.llms.utils import resolve_llm
-from llama_index.core.schema import TextNode
+from llama_index.core.schema import TextNode, BaseNode
 
 from llama_index.core.storage.storage_context import StorageContext
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
@@ -132,8 +132,10 @@ def filter_out_invalid_nodes(nodes) -> List:
     return good_nodes
 
 
-def save_index(nodes, storage_context, index, persist_folder) -> None:
+def save_index(
+        nodes: Sequence[BaseNode], storage_context: StorageContext, index: str, persist_folder: str) -> None:
     """Create and save the Vector Store Index"""
+
     idx = VectorStoreIndex(
         nodes,
         storage_context=storage_context,
