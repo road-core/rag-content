@@ -13,7 +13,7 @@ scripts_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(scripts_dir)
 
 from common_embeddings import (
-    file_metadata_func,
+    FileMetadataProcessor,
     get_common_arg_parser,
     filter_out_invalid_nodes,
     save_index,
@@ -28,40 +28,42 @@ OCP_DOCS_VERSION = "4.15"
 RUNBOOKS_ROOT_URL = "https://github.com/openshift/runbooks/blob/master/alerts"
 
 
-def ocp_file_metadata_func(file_path: str) -> Dict:
-    """Populate metadata for an OCP docs page.
+class OpenshiftDocsMetadata(FileMetadataProcessor):
 
-    Args:
-        file_path: str: file path in str
+    """Generates metadata from plaintext Openshift documentation.
     """
-    docs_url = lambda file_path: (  # noqa: E731
-        OCP_DOCS_ROOT_URL
-        + OCP_DOCS_VERSION
-        + file_path.removeprefix(EMBEDDINGS_ROOT_DIR).removesuffix("txt")
-        + "html"
-    )
-    return file_metadata_func(file_path, docs_url)
+    def __init__(self, root_dir: str, ocp_docs_version: str):
+        super().__init__()
+        self.root_dir = root_dir
+        self.ocp_docs_version = ocp_docs_version
+
+    def url_function(self, file_path: str):
+
+        return (  # noqa: E731
+            OCP_DOCS_ROOT_URL
+            + self.ocp_docs_version
+            + file_path.removeprefix(self.root_dir).removesuffix("txt")
+            + "html"
+        )
 
 
-def runbook_file_metadata_func(file_path: str) -> Dict:
-    """Populate metadata for a runbook page.
+class OpenshiftRunbooksMetadata(FileMetadataProcessor):
 
-    Args:
-        file_path: str: file path in str
-    """
-    docs_url = lambda file_path: (  # noqa: E731
-        RUNBOOKS_ROOT_URL + file_path.removeprefix(RUNBOOKS_ROOT_DIR)
-    )
-    return file_metadata_func(file_path, docs_url)
+    def __init__(self, root_dir: str):
+        super().__init__()
+        self.root_dir = root_dir
+
+    def url_function(self, file_path: str):
+
+        return self.root_dir + file_path.removeprefix(self.root_dir)
 
 
 if __name__ == "__main__":
 
     start_time = time.time()
-
     parser = get_common_arg_parser()
     parser.add_argument("-r", "--runbooks", help="Runbooks folder path")
-    parser.add_argument("-v", "--ocp-version", help="OCP version")
+    parser.add_argument("-v", "--ocp-version", help="OCP version", default=OCP_DOCS_VERSION)
     args = parser.parse_args()
     print(f"Arguments used: {args}")
 
@@ -77,29 +79,31 @@ if __name__ == "__main__":
     if RUNBOOKS_ROOT_DIR.endswith("/"):
         RUNBOOKS_ROOT_DIR = RUNBOOKS_ROOT_DIR[:-1]
 
-    OCP_DOCS_VERSION = args.ocp_version
-
     os.environ["HF_HOME"] = args.model_dir
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
     settings, embedding_dimension, storage_context = get_settings(
         args.chunk, args.overlap, args.model_dir)
 
+    metadata_processor = OpenshiftDocsMetadata(EMBEDDINGS_ROOT_DIR, args.ocp_version)
+
     # Load documents
     documents = process_documents(
-        args.folder, metadata_func=ocp_file_metadata_func)
+        args.folder, metadata_func=metadata_processor.file_metadata_func, num_workers=args.workers)
 
+    unreachables = metadata_processor.n_unreachable_urls()
     # Create chunks/nodes
     nodes = settings.text_splitter.get_nodes_from_documents(documents)
 
     # Filter out invalid nodes
     good_nodes = filter_out_invalid_nodes(nodes)
+    metadata_processor = OpenshiftRunbooksMetadata(RUNBOOKS_ROOT_DIR)
 
     # Load runbook documents
     runbook_documents = process_documents(
-        args.runbooks, metadata_func=runbook_file_metadata_func,
-        required_exts=['.md',], file_extractor={".md": FlatReader()})
-
+        args.runbooks, metadata_func=metadata_processor.file_metadata_func,
+        num_workers=args.workers, required_exts=['.md',], file_extractor={".md": FlatReader()})
+    unreachables += metadata_processor.n_unreachable_urls()
     # Create chunks/nodes
     runbook_nodes = settings.text_splitter.get_nodes_from_documents(runbook_documents)
 
@@ -113,4 +117,5 @@ if __name__ == "__main__":
     save_metadata(start_time, args, embedding_dimension, documents,
                   PERSIST_FOLDER)
 
-    print_unreachable_docs_warning()
+    if unreachables > 0:
+        print_unreachable_docs_warning(unreachables)
