@@ -144,8 +144,8 @@ def save_index(
     idx.storage_context.persist(persist_dir=persist_folder)
 
 
-def save_metadata(start_time, args, embedding_dimension,
-                  documents, persist_folder) -> None:
+def save_metadata(start_time: float, args: argparse.Namespace, embedding_dimension: int,
+                  documents: SimpleDirectoryReader, persist_folder: str) -> None:
     """Create and save the metadata"""
     metadata: dict = {}
     metadata["execution-time"] = time.time() - start_time
