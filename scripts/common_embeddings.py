@@ -127,7 +127,7 @@ def filter_out_invalid_nodes(nodes) -> List:
             #     node.excluded_embed_metadata_keys.extend(args.exclude_metadata)
             good_nodes.append(node)
         else:
-            print("Skipping node without whitespace: " + node.__repr__())
+            print("Skipping node without whitespace: " + repr(node))
     return good_nodes
 
 
