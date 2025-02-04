@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 import time
-from typing import Callable, Dict, List, Sequence
+from typing import Callable, Dict, List, Sequence, Tuple
 from pathlib import Path
 
 import faiss
@@ -178,7 +178,7 @@ def process_documents(docs_dir: Path, metadata_func: Callable,
         file_extractor=file_extractor).load_data(num_workers=num_workers)
 
 
-def get_settings(chunk_size, chunk_overlap, model_dir):
+def get_settings(chunk_size: int, chunk_overlap: int, model_dir: str) -> Tuple:
     Settings.chunk_size = chunk_size
     Settings.chunk_overlap = chunk_overlap
     Settings.embed_model = HuggingFaceEmbedding(model_name=model_dir)
