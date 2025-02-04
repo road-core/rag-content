@@ -187,10 +187,10 @@ def get_settings(chunk_size, chunk_overlap, model_dir):
     return Settings, embedding_dimension, storage_context
 
 
-def print_unreachable_docs_warning():
-    if UNREACHABLE_DOCS > 0:
-        print("WARNING:\n"
-            f"There were documents with {UNREACHABLE_DOCS} unreachable URLs, "
-            "grep the log for UNREACHABLE.\n"
-            "Please update the plain text."
-        )
+def print_unreachable_docs_warning(n_unreachable_urls: int = UNREACHABLE_DOCS):
+
+    print("WARNING:\n"
+        f"There were documents with {n_unreachable_urls} unreachable URLs, "
+        "grep the log for UNREACHABLE.\n"
+        "Please update the plain text."
+    )
