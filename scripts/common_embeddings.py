@@ -7,6 +7,7 @@ import json
 import os
 import time
 from typing import Callable, Dict, List
+from pathlib import Path
 
 import faiss
 from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex
@@ -159,8 +160,11 @@ def save_metadata(start_time, args, embedding_dimension,
         file.write(json.dumps(metadata))
 
 
-def process_documents(docs_dir, metadata_func=None, required_exts=None,
-                      file_extractor=None, num_workers=0):
+def process_documents(docs_dir: Path, metadata_func: Callable,
+                      required_exts : List[str] | None = None,
+                      file_extractor: Dict | None = None,
+                      num_workers: int = 0) -> SimpleDirectoryReader:
+
     if num_workers <= 0:
         num_workers = None
 
