@@ -2,6 +2,7 @@
 
 import argparse
 import os
+from huggingface_hub import snapshot_download
 
 if __name__ == "__main__":
 
@@ -15,8 +16,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
-
-    from huggingface_hub import snapshot_download
 
     snapshot_download(repo_id=args.hf_repo_id, local_dir=args.local_dir)
 
