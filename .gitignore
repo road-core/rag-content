@@ -157,3 +157,7 @@ cython_debug/
 
 # rag-content specific
 embeddings_model/
+
+# PDM
+
+.pdm-python
