@@ -8,9 +8,14 @@ if ! command -v tox &> /dev/null; then
 fi
 
 # OpenStack Version
-OS_VERSION=${1:-2024.2}
+OS_VERSION=${OS_VERSION:-2024.2}
+
 # List of OpenStack Projects
-OS_PROJECTS=("nova" "neutron" "cinder" "keystone" "glance" "swift")
+_OS_PROJECTS="nova neutron cinder keystone glance swift"
+OS_PROJECTS=${OS_PROJECTS:-$_OS_PROJECTS}
+# Read the environment variable into an array
+IFS=' ' read -r -a os_projects <<< "$OS_PROJECTS"
+
 # Working directory
 WORKING_DIR="/tmp/os_docs_temp"
 # Tox text-docs target
@@ -32,7 +37,7 @@ mkdir -p $WORKING_DIR
 cd $WORKING_DIR
 echo "Working directory: $WORKING_DIR"
 
-for project in "${OS_PROJECTS[@]}"; do
+for project in "${os_projects[@]}"; do
     echo "Generating the plain-text documentation for OpenStack $project"
 
     # Clone the project's repository, if not present
@@ -68,6 +73,8 @@ for project in "${OS_PROJECTS[@]}"; do
     cd -
 done
 
-# TODO(lucasagomes): Should we delete the working directory ?!
+rm -rf $CURR_DIR/openstack-docs-plaintext/*/${OS_VERSION}
 cp -r $WORKING_DIR/openstack-docs-plaintext $CURR_DIR
+
+# TODO(lucasagomes): Should we delete the working directory ?!
 echo "Done. Documents can be found at $CURR_DIR/openstack-docs-plaintext"
