@@ -20,9 +20,6 @@ from llama_index.vector_stores.faiss import FaissVectorStore
 import requests
 
 
-UNREACHABLE_DOCS: int = 0
-
-
 def ping_url(url: str) -> bool:
     """Check if the URL parameter is live."""
     try:
@@ -42,27 +39,54 @@ def get_file_title(file_path: str) -> str:
         pass
     return title
 
+class FileMetadataProcessor:
+    """Metadata processing callback with memory of unreachable URLS.
+    FileMetadataProcessor keeps a list of processed files,
+    their titles, URLs and if their URLs were reachable.
 
-def file_metadata_func(file_path: str,
-                       docs_url_func: Callable[[str], str]) -> Dict:
-    """Populate title and metadata with docs URL.
-
-    Populate the docs_url and title metadata elements with docs URL
-    and the page's title.
-
-    Args:
-        file_path: str: file path in str
-        docs_url_func: Callable[[str], str]: lambda for the docs_url
+    Projects should make their own metadata processors.
+    Specifically, the `url_function` which is meant to derive URL
+    from name of a document, is not implemented.
     """
-    docs_url = docs_url_func(file_path)
-    title = get_file_title(file_path)
-    msg = f"file_path: {file_path}, title: {title}, docs_url: {docs_url}"
-    if not ping_url(docs_url):
-        global UNREACHABLE_DOCS
-        UNREACHABLE_DOCS += 1
-        msg += ", UNREACHABLE"
-    print(msg)
-    return {"docs_url": docs_url, "title": title}
+
+    def __init__(self):
+        self.processed_urls = []
+
+    def url_function(self, file_path: str) -> str:
+        """This function must be implemeted in the derived class
+        """
+        raise NotImplementedError
+
+    def n_unreachable_urls(self) -> int:
+        """Return number of unreachable documents.
+        """
+        return len([e for e in self.processed_urls if e["unreachable"]])
+
+    def file_metadata_func(self, file_path: str) -> Dict:
+        """Populate title and metadata with docs URL.
+
+        Populate the docs_url and title metadata elements with docs URL
+        and the page's title.
+
+        Args:
+            file_path: str: file path in str
+        """
+        docs_url = self.url_function(file_path)
+        title = get_file_title(file_path)
+
+        document = {
+            "file_path": file_path,
+            "title": title,
+            "docs_url": docs_url,
+            "unreachable": False}
+
+        if not ping_url(docs_url):
+            document["unreachable"] = True
+        self.processed_urls.append(document)
+
+        print(f"{document}")
+
+        return {"docs_url": docs_url, "title": title}
 
 
 def get_common_arg_parser() -> argparse.ArgumentParser:
@@ -107,6 +131,14 @@ def get_common_arg_parser() -> argparse.ArgumentParser:
         "-i",
         "--index",
         help="Product index")
+    parser.add_argument(
+        "-w",
+        "--workers",
+        default=-1,
+        type=int,
+        help=("Number of workers (defaults to number of CPUs) to parallelize "
+              "the data loading. By default set to a negative value. Turning parallelism off.")
+    )
     return parser
 
 
@@ -193,7 +225,7 @@ def get_settings(chunk_size: int, chunk_overlap: int, model_dir: str) -> Tuple:
     return Settings, embedding_dimension, storage_context
 
 
-def print_unreachable_docs_warning(n_unreachable_urls: int = UNREACHABLE_DOCS):
+def print_unreachable_docs_warning(n_unreachable_urls: int = 0):
 
     print("WARNING:\n"
         f"There were documents with {n_unreachable_urls} unreachable URLs, "
