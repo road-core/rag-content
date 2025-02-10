@@ -24,12 +24,13 @@ COPY ocp-product-docs-plaintext ./ocp-product-docs-plaintext
 COPY runbooks ./runbooks
 
 COPY scripts/download_embeddings_model.py .
+
 RUN pdm run python download_embeddings_model.py -l ./embeddings_model -r ${EMBEDDING_MODEL}
 
 RUN export LD_LIBRARY_PATH=/usr/local/cuda-12.6/compat:$LD_LIBRARY_PATH; \
     pdm run python -c "import torch; print(torch.version.cuda); print(torch.cuda.is_available());"
 
-COPY scripts/generate_embeddings.py .
+COPY scripts/common_embeddings.py scripts/generate_embeddings.py .
 RUN export LD_LIBRARY_PATH=/usr/local/cuda-12.6/compat:$LD_LIBRARY_PATH; \
     set -e && for OCP_VERSION in $(ls -1 ocp-product-docs-plaintext); do \
         pdm run python generate_embeddings.py -f ocp-product-docs-plaintext/${OCP_VERSION} -r runbooks/alerts -md embeddings_model \
