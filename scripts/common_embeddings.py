@@ -136,8 +136,8 @@ def get_common_arg_parser() -> argparse.ArgumentParser:
         "--workers",
         default=-1,
         type=int,
-        help=("Number of workers (defaults to number of CPUs) to parallelize "
-              "the data loading. By default set to a negative value. Turning parallelism off.")
+        help=("Number of workers to parallelize the data loading. Set to a "
+              "negative value by default, turning parallelism off")
     )
     return parser
 
