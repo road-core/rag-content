@@ -43,11 +43,11 @@ update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	done
 	scripts/get_runbooks.sh
 
-build-image: ## Build a rag-content container image.
+build-image: build-base-image ## Build a rag-content container image with CPU base
 	podman build -t rag-content .
 
-build-base-image: ## Build base container image
-	podman build -t base-rag-content -f Containerfile.base
+build-base-image: ## Build CPU base container image
+	podman build -t cpu-road-core-base -f Containerfile.base
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
