@@ -46,6 +46,9 @@ update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 build-image: ## Build a rag-content container image.
 	podman build -t rag-content .
 
+build-base-image: ## Build base container image
+	podman build -t base-rag-content -f Containerfile.base
+
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
 	@echo ''
