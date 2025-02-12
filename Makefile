@@ -43,8 +43,8 @@ update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	done
 	scripts/get_runbooks.sh
 
-build-image: build-base-image ## Build a rag-content container image with CPU base
-	podman build -t rag-content .
+build-image-ocp-example: build-base-image ## Build a rag-content container image with CPU base
+	podman build -t rag-content -f examples/Containerfile.ocp_lightspeed .
 
 build-base-image: ## Build CPU base container image
 	podman build -t cpu-road-core-base -f Containerfile.base
