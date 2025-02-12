@@ -26,13 +26,13 @@ OS_DOCS_ROOT_URL = "https://docs.openstack.org"
 
 class OpenstackDocsMetadataProcessor(FileMetadataProcessor):
 
-    def __init__(self, docs_path):
+    def __init__(self, docs_path, base_url):
         super().__init__()
         self._base_path = os.path.abspath(docs_path)
         if self._base_path.endswith('/'):
             self._base_path = self._base_path[:-1]
 
-        self.base_url = docs_path
+        self.base_url = base_url
 
     def url_function(self, file_path):
         return (  # noqa: E731
@@ -60,7 +60,8 @@ if __name__ == "__main__":
     settings, embedding_dimension, storage_context = get_settings(
         args.chunk, args.overlap, args.model_dir)
 
-    metadata_processor = OpenstackDocsMetadataProcessor(args.folder)
+    metadata_processor = OpenstackDocsMetadataProcessor(
+        args.folder, OS_DOCS_ROOT_URL)
 
     # Load documents
     documents = process_documents(
