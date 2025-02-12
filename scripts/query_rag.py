@@ -23,8 +23,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-m", "--model-path", required=True, help="path to the embedding model"
     )
-    parser.add_argument("-q", "--query", help="query to run")
-    parser.add_argument("-k", "--top-k", type=int, help="similarity_top_k")
+    parser.add_argument("-q", "--query", type=str, required=True, help="query to run")
+    parser.add_argument("-k", "--top-k", type=int, default=1, help="similarity_top_k")
     parser.add_argument("-n", "--node", help="retrieve node")
     args = parser.parse_args()
 
