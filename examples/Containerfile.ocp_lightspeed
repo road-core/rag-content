@@ -1,22 +1,28 @@
 ARG FLAVOR=cpu
 FROM ${FLAVOR}-road-core-base as road-core-rag-builder
 ARG EMBEDDING_MODEL=sentence-transformers/all-mpnet-base-v2
+ARG OCP_DOCS_VERSION="4.15"
 
 USER 0
 WORKDIR /workdir
 
-# OCP Only part
-COPY ocp-product-docs-plaintext ./ocp-product-docs-plaintext
-COPY runbooks ./runbooks
+COPY ./scripts/get_ocp_plaintext_docs.sh ./scripts/get_runbooks.sh ./
+COPY ./scripts/asciidoctor-text ./asciidoctor-text
+# Modify script inplace to account for new path
+RUN sed -i 's/scripts\/asciidoctor-text/asciidoctor-text/' get_ocp_plaintext_docs.sh
+RUN dnf install rubygems -y &&\
+    gem install asciidoctor
+RUN ./get_ocp_plaintext_docs.sh $OCP_DOCS_VERSION
+RUN ./get_runbooks.sh
 
 RUN export LD_LIBRARY_PATH=/usr/local/cuda-12.6/compat:$LD_LIBRARY_PATH; \
     set -e && for OCP_VERSION in $(ls -1 ocp-product-docs-plaintext); do \
         pdm run python generate_embeddings.py -f ocp-product-docs-plaintext/${OCP_VERSION} -r runbooks/alerts -md embeddings_model \
-            -mn ${EMBEDDING_MODEL} -o vector_db/ocp_product_docs/${OCP_VERSION} \
+            -mn ${EMBEDDING_MODEL} -o vector_db/ocp_product_docs/${OCP_VERSION} -w $(($(nproc --all) / 2)) \
             -i ocp-product-docs-$(echo $OCP_VERSION | sed 's/\./_/g') -v ${OCP_VERSION}; \
     done
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 COPY --from=road-core-rag-builder /workdir/vector_db/ocp_product_docs /rag/vector_db/ocp_product_docs
 COPY --from=road-core-rag-builder /workdir/embeddings_model /rag/embeddings_model
 
