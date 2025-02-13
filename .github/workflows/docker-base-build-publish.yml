@@ -31,8 +31,9 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           image: ${{ env.IMAGE_NAME }}
-          tags: latest-${{ matrix.architecture }} ${{ github.sha }}-${{matrix.architecture}}
+          tags: latest-${{ matrix.architecture }} ${{ github.sha }}-${{ matrix.architecture }}
           oci: true
+          build-args: FLAVOR=${{ matrix.architecture }}
           containerfiles: |
             ./Containerfile.base
                                                                             
