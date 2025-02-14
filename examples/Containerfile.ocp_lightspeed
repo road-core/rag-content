@@ -1,6 +1,7 @@
 ARG FLAVOR=cpu
 FROM ${FLAVOR}-road-core-base as road-core-rag-builder
 ARG OCP_DOCS_VERSION="4.15"
+ARG NUM_WORKERS=1
 
 USER 0
 WORKDIR /workdir
@@ -16,7 +17,7 @@ RUN ./get_runbooks.sh
 
 RUN set -e && for OCP_VERSION in $(ls -1 ocp-product-docs-plaintext); do \
         pdm run python generate_embeddings.py -f ocp-product-docs-plaintext/${OCP_VERSION} -r runbooks/alerts -md embeddings_model \
-            -mn ${EMBEDDING_MODEL} -o vector_db/ocp_product_docs/${OCP_VERSION} -w $(($(nproc --all) / 2)) \
+            -mn ${EMBEDDING_MODEL} -o vector_db/ocp_product_docs/${OCP_VERSION} -w ${NUM_WORKERS} \
             -i ocp-product-docs-$(echo $OCP_VERSION | sed 's/\./_/g') -v ${OCP_VERSION}; \
     done
 
