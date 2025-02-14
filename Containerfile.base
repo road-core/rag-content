@@ -1,24 +1,21 @@
 # Contains embedding model and dependencies needed to generate database
 
-ARG EMBEDDING_MODEL=sentence-transformers/all-mpnet-base-v2
 ARG FLAVOR=cpu
 
 FROM registry.access.redhat.com/ubi9/python-311 as cpu-base
-ARG EMBEDDING_MODEL
 ARG FLAVOR
 
 FROM nvcr.io/nvidia/cuda:12.6.2-devel-ubi9 as gpu-base
-ARG EMBEDDING_MODEL
 ARG FLAVOR
 RUN dnf install -y python3.11 python3.11-pip libcudnn8 libnccl git
 ENV LD_LIBRARY_PATH=/usr/local/cuda-12.6/compat:$LD_LIBRARY_PATH
 
 FROM ${FLAVOR}-base as road-core-rag-builder
-ARG EMBEDDING_MODEL
 ARG FLAVOR
 
 USER 0
 WORKDIR /workdir
+ENV EMBEDDING_MODEL=sentence-transformers/all-mpnet-base-v2
 
 COPY pyproject.toml pdm.lock* Makefile ./
 RUN make install-tools && pdm config python.use_venv False && make pdm-lock-check install-deps

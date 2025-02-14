@@ -1,6 +1,5 @@
 ARG FLAVOR=cpu
 FROM ${FLAVOR}-road-core-base as road-core-rag-builder
-ARG EMBEDDING_MODEL=sentence-transformers/all-mpnet-base-v2
 ARG OCP_DOCS_VERSION="4.15"
 
 USER 0
