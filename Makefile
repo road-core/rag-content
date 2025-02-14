@@ -43,11 +43,11 @@ update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	done
 	scripts/get_runbooks.sh
 
-build-image-ocp-example: build-base-image ## Build a rag-content container image with CPU base
-	podman build -t rag-content -f examples/Containerfile.ocp_lightspeed .
+build-image-ocp-example: build-base-image ## Build a rag-content container image
+	podman build -t rag-content -f examples/Containerfile.ocp_lightspeed --build-arg FLAVOR=$(TORCH_GROUP) .
 
-build-base-image: ## Build CPU base container image
-	podman build -t cpu-road-core-base -f Containerfile.base
+build-base-image: ## Build base container image
+	podman build -t $(TORCH_GROUP)-road-core-base -f Containerfile.base --build-arg FLAVOR=$(TORCH_GROUP)
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
