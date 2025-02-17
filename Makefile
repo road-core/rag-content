@@ -1,5 +1,6 @@
 # Default to CPU if not specified
 FLAVOR ?= cpu
+NUM_WORKERS ?= $$(( $(shell nproc --all) / 2))
 
 # Define behavior based on the flavor
 ifeq ($(FLAVOR),cpu)
@@ -43,8 +44,11 @@ update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	done
 	scripts/get_runbooks.sh
 
-build-image: ## Build a rag-content container image.
-	podman build -t rag-content .
+build-image-ocp-example: build-base-image ## Build a rag-content container image
+	podman build -t rag-content -f examples/Containerfile.ocp_lightspeed --build-arg FLAVOR=$(TORCH_GROUP) --build-arg NUM_WORKERS=$(NUM_WORKERS) .
+
+build-base-image: ## Build base container image
+	podman build -t $(TORCH_GROUP)-road-core-base -f Containerfile.base --build-arg FLAVOR=$(TORCH_GROUP)
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
