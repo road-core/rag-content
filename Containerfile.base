@@ -1,5 +1,3 @@
-# Contains embedding model and dependencies needed to generate database
-
 ARG FLAVOR=cpu
 
 FROM registry.access.redhat.com/ubi9/python-311 as cpu-base
@@ -30,3 +28,5 @@ COPY scripts/download_embeddings_model.py .
 RUN pdm run python download_embeddings_model.py -l ./embeddings_model -r ${EMBEDDING_MODEL}
 
 COPY scripts/common_embeddings.py scripts/generate_embeddings.py ./
+
+LABEL description="Contains embedding model and dependencies needed to generate a vector database"
