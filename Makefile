@@ -41,6 +41,7 @@ format: ## Format the code into unified format
 verify: check-types ## Verify the code using various linters
 	pdm run black --check scripts
 	pdm run ruff check scripts --per-file-ignores=scripts/*:S101
+	pdm run pre-commit run
 
 update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	@set -e && for OCP_VERSION in $$(ls -1 ocp-product-docs-plaintext); do \
