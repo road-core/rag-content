@@ -17,6 +17,9 @@ install-tools: ## Install required utilities/tools
 pdm-lock-check: ## Check that the pdm.lock file is in a good shape
 	pdm lock --check --group $(TORCH_GROUP) --lockfile pdm.lock.$(TORCH_GROUP)
 
+install-hooks: install-deps-test ## Install commit hooks
+	pdm run pre-commit install
+
 install-deps: install-tools pdm-lock-check ## Install all required dependencies, according to pdm.lock
 	pdm sync --group $(TORCH_GROUP) --lockfile pdm.lock.$(TORCH_GROUP)
 
@@ -28,15 +31,16 @@ update-deps: ## Check pyproject.toml for changes, update the lock file if needed
 	pdm install --dev --group $(TORCH_GROUP) --lockfile pdm.lock.$(TORCH_GROUP)
 
 check-types: ## Checks type hints in sources
-	mypy --explicit-package-bases --disallow-untyped-calls --disallow-untyped-defs --disallow-incomplete-defs scripts
+	pdm run mypy --explicit-package-bases --disallow-untyped-calls --disallow-untyped-defs --disallow-incomplete-defs scripts
 
 format: ## Format the code into unified format
-	black scripts
-	ruff check scripts --fix --per-file-ignores=scripts/*:S101
+	pdm run black scripts
+	pdm run ruff check scripts --fix --per-file-ignores=scripts/*:S101
+	pdm run pre-commit run
 
-verify: ## Verify the code using various linters
-	black --check scripts
-	ruff check scripts --per-file-ignores=scripts/*:S101
+verify: check-types ## Verify the code using various linters
+	pdm run black --check scripts
+	pdm run ruff check scripts --per-file-ignores=scripts/*:S101
 
 update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	@set -e && for OCP_VERSION in $$(ls -1 ocp-product-docs-plaintext); do \

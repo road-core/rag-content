@@ -6,18 +6,17 @@ import argparse
 import json
 import os
 import time
-from typing import Callable, Dict, List, Sequence, Tuple
 from pathlib import Path
+from typing import Callable, Dict, List, Sequence, Tuple
 
 import faiss
+import requests
 from llama_index.core import Settings, SimpleDirectoryReader, VectorStoreIndex
 from llama_index.core.llms.utils import resolve_llm
-from llama_index.core.schema import TextNode, BaseNode
-
+from llama_index.core.schema import BaseNode, TextNode
 from llama_index.core.storage.storage_context import StorageContext
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.vector_stores.faiss import FaissVectorStore
-import requests
 
 
 def ping_url(url: str) -> bool:
@@ -39,6 +38,7 @@ def get_file_title(file_path: str) -> str:
         pass
     return title
 
+
 class FileMetadataProcessor:
     """Metadata processing callback with memory of unreachable URLS.
     FileMetadataProcessor keeps a list of processed files,
@@ -53,13 +53,11 @@ class FileMetadataProcessor:
         self.processed_urls = []
 
     def url_function(self, file_path: str) -> str:
-        """This function must be implemeted in the derived class
-        """
+        """This function must be implemeted in the derived class"""
         raise NotImplementedError
 
     def n_unreachable_urls(self) -> int:
-        """Return number of unreachable documents.
-        """
+        """Return number of unreachable documents."""
         return len([e for e in self.processed_urls if e["unreachable"]])
 
     def file_metadata_func(self, file_path: str) -> Dict:
@@ -78,7 +76,8 @@ class FileMetadataProcessor:
             "file_path": file_path,
             "title": title,
             "docs_url": docs_url,
-            "unreachable": False}
+            "unreachable": False,
+        }
 
         if not ping_url(docs_url):
             document["unreachable"] = True
@@ -90,54 +89,41 @@ class FileMetadataProcessor:
 
 
 def get_common_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Embedding CLI for task execution")
+    parser = argparse.ArgumentParser(description="Embedding CLI for task execution")
     parser.add_argument(
-        "-f",
-        "--folder",
-        help="Directory containing the plain text documentation")
+        "-f", "--folder", help="Directory containing the plain text documentation"
+    )
     parser.add_argument(
         "-md",
         "--model-dir",
         default="embeddings_model",
-        help="Directory containing the embedding model")
+        help="Directory containing the embedding model",
+    )
+    parser.add_argument("-mn", "--model-name", help="HF repo id of the embedding model")
     parser.add_argument(
-        "-mn",
-        "--model-name",
-        help="HF repo id of the embedding model")
+        "-c", "--chunk", type=int, default=380, help="Chunk size for embedding"
+    )
     parser.add_argument(
-        "-c",
-        "--chunk",
-        type=int,
-        default=380,
-        help="Chunk size for embedding")
-    parser.add_argument(
-        "-l",
-        "--overlap",
-        type=int,
-        default=0,
-        help="Chunk overlap for embedding")
+        "-l", "--overlap", type=int, default=0, help="Chunk overlap for embedding"
+    )
     parser.add_argument(
         "-em",
         "--exclude-metadata",
         nargs="+",
         default=None,
-        help="Metadata to be excluded during embedding")
-    parser.add_argument(
-        "-o",
-        "--output",
-        help="Vector DB output folder")
-    parser.add_argument(
-        "-i",
-        "--index",
-        help="Product index")
+        help="Metadata to be excluded during embedding",
+    )
+    parser.add_argument("-o", "--output", help="Vector DB output folder")
+    parser.add_argument("-i", "--index", help="Product index")
     parser.add_argument(
         "-w",
         "--workers",
         default=-1,
         type=int,
-        help=("Number of workers to parallelize the data loading. Set to a "
-              "negative value by default, turning parallelism off")
+        help=(
+            "Number of workers to parallelize the data loading. Set to a "
+            "negative value by default, turning parallelism off"
+        ),
     )
     return parser
 
@@ -165,9 +151,12 @@ def filter_out_invalid_nodes(nodes) -> List:
 
 
 def save_index(
-        nodes: Sequence[BaseNode], storage_context: StorageContext, index: str, persist_folder: str) -> None:
+    nodes: Sequence[BaseNode],
+    storage_context: StorageContext,
+    index: str,
+    persist_folder: str,
+) -> None:
     """Create and save the Vector Store Index"""
-
     idx = VectorStoreIndex(
         nodes,
         storage_context=storage_context,
@@ -176,8 +165,13 @@ def save_index(
     idx.storage_context.persist(persist_dir=persist_folder)
 
 
-def save_metadata(start_time: float, args: argparse.Namespace, embedding_dimension: int,
-                  documents: SimpleDirectoryReader, persist_folder: str) -> None:
+def save_metadata(
+    start_time: float,
+    args: argparse.Namespace,
+    embedding_dimension: int,
+    documents: SimpleDirectoryReader,
+    persist_folder: str,
+) -> None:
     """Create and save the metadata"""
     metadata: dict = {}
     metadata["execution-time"] = time.time() - start_time
@@ -194,10 +188,13 @@ def save_metadata(start_time: float, args: argparse.Namespace, embedding_dimensi
         file.write(json.dumps(metadata))
 
 
-def process_documents(docs_dir: Path, metadata_func: Callable,
-                      required_exts : List[str] | None = None,
-                      file_extractor: Dict | None = None,
-                      num_workers: int = 0) -> SimpleDirectoryReader:
+def process_documents(
+    docs_dir: Path,
+    metadata_func: Callable,
+    required_exts: List[str] | None = None,
+    file_extractor: Dict | None = None,
+    num_workers: int = 0,
+) -> SimpleDirectoryReader:
 
     if num_workers <= 0:
         num_workers = None
@@ -207,7 +204,8 @@ def process_documents(docs_dir: Path, metadata_func: Callable,
         recursive=True,
         file_metadata=metadata_func,
         required_exts=required_exts,
-        file_extractor=file_extractor).load_data(num_workers=num_workers)
+        file_extractor=file_extractor,
+    ).load_data(num_workers=num_workers)
 
 
 def get_settings(chunk_size: int, chunk_overlap: int, model_dir: str) -> Tuple:
@@ -216,8 +214,7 @@ def get_settings(chunk_size: int, chunk_overlap: int, model_dir: str) -> Tuple:
     Settings.embed_model = HuggingFaceEmbedding(model_name=model_dir)
     Settings.llm = resolve_llm(None)
 
-    embedding_dimension = len(Settings.embed_model.get_text_embedding(
-        "random text"))
+    embedding_dimension = len(Settings.embed_model.get_text_embedding("random text"))
     faiss_index = faiss.IndexFlatIP(embedding_dimension)
     vector_store = FaissVectorStore(faiss_index=faiss_index)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
@@ -227,7 +224,8 @@ def get_settings(chunk_size: int, chunk_overlap: int, model_dir: str) -> Tuple:
 
 def print_unreachable_docs_warning(n_unreachable_urls: int = 0):
 
-    print("WARNING:\n"
+    print(
+        "WARNING:\n"
         f"There were documents with {n_unreachable_urls} unreachable URLs, "
         "grep the log for UNREACHABLE.\n"
         "Please update the plain text."
