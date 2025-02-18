@@ -2,6 +2,8 @@ name: Push to GHCR
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
 
 env:
@@ -30,7 +32,7 @@ jobs:
         with:
           # this might remove tools that are actually needed,
           # if set to "true" but frees about 6 GB
-          tool-cache: false
+          tool-cache: true
 
       # Build image using Buildah action
       - name: Build Image
@@ -48,6 +50,7 @@ jobs:
       - name: Push To GHCR
         uses: redhat-actions/push-to-registry@v2
         id: push
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           image: ${{ steps.build_image.outputs.image }}
           tags: ${{ steps.build_image.outputs.tags }}
