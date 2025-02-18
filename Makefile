@@ -16,6 +16,9 @@ install-tools: ## Install required utilities/tools
 pdm-lock-check: ## Check that the pdm.lock file is in a good shape
 	pdm lock --check --group $(TORCH_GROUP) --lockfile pdm.lock.$(TORCH_GROUP)
 
+install-hooks: install-deps-test ## Install commit hooks
+	pdm run pre-commit install
+
 install-deps: install-tools pdm-lock-check ## Install all required dependencies, according to pdm.lock
 	pdm sync --group $(TORCH_GROUP) --lockfile pdm.lock.$(TORCH_GROUP)
 
@@ -32,6 +35,7 @@ check-types: ## Checks type hints in sources
 format: ## Format the code into unified format
 	pdm run black scripts
 	pdm run ruff check scripts --fix --per-file-ignores=scripts/*:S101
+	pdm run pre-commit run
 
 verify: ## Verify the code using various linters
 	pdm run black --check scripts
