@@ -37,7 +37,7 @@ format: ## Format the code into unified format
 	pdm run ruff check scripts --fix --per-file-ignores=scripts/*:S101
 	pdm run pre-commit run
 
-verify: ## Verify the code using various linters
+verify: check-types ## Verify the code using various linters
 	pdm run black --check scripts
 	pdm run ruff check scripts --per-file-ignores=scripts/*:S101
 
