@@ -5,7 +5,8 @@ ARG FLAVOR
 
 FROM nvcr.io/nvidia/cuda:12.6.2-devel-ubi9 as gpu-base
 ARG FLAVOR
-RUN dnf install -y python3.11 python3.11-pip libcudnn8 libnccl git
+RUN dnf install -y python3.11 python3.11-pip libcudnn8 libnccl git &&\
+    dnf clean all
 ENV LD_LIBRARY_PATH=/usr/local/cuda-12.6/compat:$LD_LIBRARY_PATH
 
 FROM ${FLAVOR}-base as road-core-rag-builder

@@ -5,6 +5,7 @@ import argparse
 import os
 
 from huggingface_hub import snapshot_download
+import shutil
 
 if __name__ == "__main__":
 
@@ -35,3 +36,7 @@ if __name__ == "__main__":
 
     # remove pytorch_model.bin, load the model from model.safetensors
     os.remove(os.path.join(args.local_dir, "pytorch_model.bin"))
+
+    # remove onnx and openvino models
+    shutil.rmtree(os.path.join(args.local_dir, "onnx"))
+    shutil.rmtree(os.path.join(args.local_dir, "openvino"))
