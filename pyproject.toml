@@ -17,7 +17,7 @@ disable_error_code = ["union-attr", "return-value", "arg-type", "import-untyped"
 ignore_missing_imports = true
 
 [tool.pdm]
-distribution = false
+distribution = true
 
 [tool.pdm.dev-dependencies]
 dev = [
@@ -55,5 +55,4 @@ dependencies = [
     "faiss-cpu==1.8.0.post1",
 ]
 requires-python = "==3.11.*"
-readme = "README.md"
-license = {file = "LICENSE"}
+dynamic = ["license", "readme"]
