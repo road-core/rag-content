@@ -59,7 +59,13 @@ update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	scripts/get_runbooks.sh
 
 build-image-ocp-example: build-base-image ## Build a rag-content container image
-	podman build -t rag-content -f examples/Containerfile.ocp_lightspeed --build-arg FLAVOR=$(TORCH_GROUP) --build-arg NUM_WORKERS=$(NUM_WORKERS) .
+	podman build -t ocp-rag-content -f examples/Containerfile.ocp_lightspeed --build-arg FLAVOR=$(TORCH_GROUP) --build-arg NUM_WORKERS=$(NUM_WORKERS) .
+
+build-image-ocp-example-test: build-image-ocp-example ## Build test image for the OCP example
+	podman build -t test-rag-content -f examples/Containerfile.minimal_test .
+
+run-ocp-example-test: build-image-ocp-example-test ## Execute test image for the OCP example
+	podman run test-rag-content
 
 build-base-image: ## Build base container image
 	podman build -t $(TORCH_GROUP)-road-core-base -f Containerfile.base --build-arg FLAVOR=$(TORCH_GROUP)
