@@ -10,7 +10,7 @@ COPY --from=ocp-rag-content /rag/vector_db/ocp_product_docs /rag/vector_db/ocp_p
 COPY --from=ocp-rag-content /rag/embeddings_model /rag/embeddings_model
 
 # Run test on the database
-CMD pdm run query_rag.py --db-path /rag/vector_db/ocp_product_docs/$OCP_DOCS_VERSION/ \
+CMD python query_rag.py --db-path /rag/vector_db/ocp_product_docs/$OCP_DOCS_VERSION/ \
     -x ocp-product-docs-$(echo $OCP_DOCS_VERSION | sed 's/\./_/g') \
     --model-path /rag/embeddings_model \
     -t $SCORE_THRESHOLD \
