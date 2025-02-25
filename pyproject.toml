@@ -26,6 +26,7 @@ dev = [
     "ruff==0.6.9",
     "types-requests==2.32.0.20240622",
     "pre-commit==4.0.1",
+    "coverage>=7.6.12",
 ]
 
 [build-system]
@@ -39,6 +40,9 @@ cpu = [
 gpu = [
     "torch==2.3.1",
 ]
+
+[tool.pdm.scripts]
+test = {shell = "coverage run --source=src/lightspeed_rag_content -m unittest discover tests --verbose && coverage report -m"}
 
 [project]
 name = "lightspeed-rag-content"
