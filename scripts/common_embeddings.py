@@ -17,6 +17,7 @@ from llama_index.core.schema import BaseNode, TextNode
 from llama_index.core.storage.storage_context import StorageContext
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.vector_stores.faiss import FaissVectorStore
+from llama_index.vector_stores.postgres import PGVectorStore
 
 
 def ping_url(url: str) -> bool:
@@ -125,6 +126,12 @@ def get_common_arg_parser() -> argparse.ArgumentParser:
             "negative value by default, turning parallelism off"
         ),
     )
+    parser.add_argument(
+        "--vector-store-type",
+        default="faiss",
+        choices=["faiss", "postgres"],
+        help="vector store type to be used."
+    )
     return parser
 
 
@@ -178,7 +185,11 @@ def save_metadata(
     metadata["llm"] = "None"
     metadata["embedding-model"] = args.model_name
     metadata["index-id"] = args.index
-    metadata["vector-db"] = "faiss.IndexFlatIP"
+    if args.vector_store_type == "faiss":
+        metadata["vector-db"] = "faiss.IndexFlatIP"
+    elif args.vector_store_type == "postgres":
+        metadata["vector-db"] = "PGVectorStore"
+
     metadata["embedding-dimension"] = embedding_dimension
     metadata["chunk"] = args.chunk
     metadata["overlap"] = args.overlap
@@ -208,15 +219,43 @@ def process_documents(
     ).load_data(num_workers=num_workers)
 
 
-def get_settings(chunk_size: int, chunk_overlap: int, model_dir: str) -> Tuple:
+def get_settings(
+        chunk_size: int,
+        chunk_overlap: int,
+        model_dir: str,
+        vector_store_type: str = "faiss",
+        product_index: str = "product_index",
+) -> Tuple:
     Settings.chunk_size = chunk_size
     Settings.chunk_overlap = chunk_overlap
     Settings.embed_model = HuggingFaceEmbedding(model_name=model_dir)
     Settings.llm = resolve_llm(None)
 
     embedding_dimension = len(Settings.embed_model.get_text_embedding("random text"))
-    faiss_index = faiss.IndexFlatIP(embedding_dimension)
-    vector_store = FaissVectorStore(faiss_index=faiss_index)
+    if vector_store_type == "faiss":
+        faiss_index = faiss.IndexFlatIP(embedding_dimension)
+        vector_store = FaissVectorStore(faiss_index=faiss_index)
+    elif vector_store_type == "postgres":
+        user = os.getenv("POSTGRES_USER")
+        password = os.getenv("POSTGRES_PASSWORD")
+        host = os.getenv("POSTGRES_HOST")
+        port = os.getenv("POSTGRES_PORT")
+        database = os.getenv("POSTGRES_DATABASE")
+
+        table_name = product_index.replace("-", "_")
+
+        vector_store = PGVectorStore.from_params(
+            database=database,
+            host=host,
+            password=password,
+            port=port,
+            user=user,
+            table_name=table_name,
+            embed_dim=embedding_dimension,  # openai embedding dimension
+        )
+    else:
+        raise RuntimeError(f"Unknown vector store type: {vector_store_type}")
+
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
     return Settings, embedding_dimension, storage_context

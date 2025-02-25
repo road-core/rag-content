@@ -89,3 +89,28 @@ Index ID set to **ocp-product-docs-4_15**.
 
 These dictories and index ID can now be used to configure OpenShift
 Lightspeed.
+
+### Generating a RAG vector database using Postgres (pgvector)
+
+This repository contains a sample code to generate a RAG vector database using Postgres
+pgvector extension.
+
+1. [Downlaod the embedding model](#download-the-embedding-model)
+2. Create a sample plain text folder by running
+    ```
+    make prepare-sample-plain-text-folder
+    ```
+   which creates the `/product_docs` folder and copies the `LICENSE` file from the project
+   root folder.
+3. Start Postgres with the pgvector by running
+    ```
+    make start-postgres-debug
+    ```
+   which runs Postgres using `podman`. The `data` folder of Postgres is created at
+   './postgresql/data'.
+4. Run
+    ```
+    make generate-embeddings-postgres
+    ```
+   which generates embeddings on Postgres, which can be used for RAG, and `metadata.json`
+   in the project's root holder.
