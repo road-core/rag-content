@@ -1,37 +1,30 @@
 #!/usr/bin/env python3
 """Utility script to generate embeddings."""
 
+import logging
 import os
-import sys
-import time
 
 from llama_index.readers.file.flat.base import FlatReader
 
-# Add the common_embedding.py to the Python path
-scripts_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(scripts_dir)
+from lightspeed_rag_content import utils
+from lightspeed_rag_content.metadata_processor import MetadataProcessor
+from lightspeed_rag_content.document_processor import DocumentProcessor
 
-from common_embeddings import (
-    FileMetadataProcessor,
-    filter_out_invalid_nodes,
-    get_common_arg_parser,
-    get_settings,
-    print_unreachable_docs_warning,
-    process_documents,
-    save_index,
-    save_metadata,
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 OCP_DOCS_ROOT_URL = "https://docs.openshift.com/container-platform/"
 OCP_DOCS_VERSION = "4.15"
-RUNBOOKS_ROOT_URL = "https://github.com/openshift/runbooks/blob/master/alerts"
+RUNBOOKS_ROOT_URL = "https://github.com/openshift/runbooks/blob/master"
 
 
-class OpenshiftDocsMetadata(FileMetadataProcessor):
+class OpenshiftDocsMetadata(MetadataProcessor):
     """Generates metadata from plaintext Openshift documentation."""
 
     def __init__(self, root_dir: str, ocp_docs_version: str):
-        super().__init__()
+        super(OpenshiftDocsMetadata, self).__init__()
         self.root_dir = root_dir
         self.ocp_docs_version = ocp_docs_version
 
@@ -45,21 +38,18 @@ class OpenshiftDocsMetadata(FileMetadataProcessor):
         )
 
 
-class OpenshiftRunbooksMetadata(FileMetadataProcessor):
+class OpenshiftRunbooksMetadata(MetadataProcessor):
 
     def __init__(self, root_dir: str):
-        super().__init__()
+        super(OpenshiftRunbooksMetadata, self).__init__()
         self.root_dir = root_dir
 
     def url_function(self, file_path: str):
-
-        return self.root_dir + file_path.removeprefix(self.root_dir)
+        return RUNBOOKS_ROOT_URL + file_path.removeprefix(self.root_dir)
 
 
 if __name__ == "__main__":
-
-    start_time = time.time()
-    parser = get_common_arg_parser()
+    parser = utils.get_common_arg_parser()
     parser.add_argument("-r", "--runbooks", help="Runbooks folder path")
     parser.add_argument(
         "-v", "--ocp-version", help="OCP version", default=OCP_DOCS_VERSION
@@ -79,52 +69,25 @@ if __name__ == "__main__":
     if RUNBOOKS_ROOT_DIR.endswith("/"):
         RUNBOOKS_ROOT_DIR = RUNBOOKS_ROOT_DIR[:-1]
 
-    os.environ["HF_HOME"] = args.model_dir
-    os.environ["TRANSFORMERS_OFFLINE"] = "1"
+    # Instantiate Metadata Processor
+    metadata_processor = OpenshiftDocsMetadata(
+        EMBEDDINGS_ROOT_DIR, args.ocp_version)
 
-    settings, embedding_dimension, storage_context = get_settings(
-        args.chunk, args.overlap, args.model_dir
-    )
+    runbooks_metadata_processor = OpenshiftRunbooksMetadata(RUNBOOKS_ROOT_DIR)
 
-    metadata_processor = OpenshiftDocsMetadata(EMBEDDINGS_ROOT_DIR, args.ocp_version)
+    # Instantiate Document Processor
+    document_processor = DocumentProcessor(
+        args.chunk, args.overlap, args.model_name, args.model_dir, args.workers)
 
-    # Load documents
-    documents = process_documents(
-        args.folder,
-        metadata_func=metadata_processor.file_metadata_func,
-        num_workers=args.workers,
-    )
+    # Process OpenShift documents
+    document_processor.process(args.folder, metadata=metadata_processor)
 
-    unreachables = metadata_processor.n_unreachable_urls()
-    # Create chunks/nodes
-    nodes = settings.text_splitter.get_nodes_from_documents(documents)
-
-    # Filter out invalid nodes
-    good_nodes = filter_out_invalid_nodes(nodes)
-    metadata_processor = OpenshiftRunbooksMetadata(RUNBOOKS_ROOT_DIR)
-
-    # Load runbook documents
-    runbook_documents = process_documents(
+    # Process Runbooks
+    document_processor.process(
         args.runbooks,
-        metadata_func=metadata_processor.file_metadata_func,
-        num_workers=args.workers,
-        required_exts=[
-            ".md",
-        ],
-        file_extractor={".md": FlatReader()},
-    )
-    unreachables += metadata_processor.n_unreachable_urls()
-    # Create chunks/nodes
-    runbook_nodes = settings.text_splitter.get_nodes_from_documents(runbook_documents)
+        metadata=runbooks_metadata_processor,
+        required_exts=[".md",],
+        file_extractor={".md": FlatReader()})
 
-    # Extend nodes with runbook_nodes
-    good_nodes.extend(runbook_nodes)
-
-    # Create & save Index
-    save_index(good_nodes, storage_context, args.index, PERSIST_FOLDER)
-
-    # Save metadata
-    save_metadata(start_time, args, embedding_dimension, documents, PERSIST_FOLDER)
-
-    if unreachables > 0:
-        print_unreachable_docs_warning(unreachables)
+    # Save to the output directory
+    document_processor.save(args.index, PERSIST_FOLDER)
