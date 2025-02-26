@@ -11,6 +11,18 @@ else
 $(error Unsupported FLAVOR $(FLAVOR), must be 'cpu' or 'gpu')
 endif
 
+# Define arguments for pgvector support
+POSTGRES_USER ?= postgres
+POSTGRES_PASSWORD ?= somesecret
+POSTGRES_HOST ?= localhost
+POSTGRES_PORT ?= 15432
+POSTGRES_DATABASE ?= postgres
+EMBEDDINGS_MODEL ?= sentence-transformers/all-mpnet-base-v2
+
+PLAIN_TEXT_FOLDER ?= ./product_docs
+OUTPUT_FOLDER ?= ./output
+PRODUCT_INDEX ?= product_index
+
 install-tools: ## Install required utilities/tools
 	@command -v pdm > /dev/null || { echo >&2 "pdm is not installed. Installing..."; pip3.11 install --upgrade pip pdm; }
 
@@ -53,6 +65,36 @@ build-image-ocp-example: build-base-image ## Build a rag-content container image
 
 build-base-image: ## Build base container image
 	podman build -t $(TORCH_GROUP)-road-core-base -f Containerfile.base --build-arg FLAVOR=$(TORCH_GROUP)
+
+start-postgres: ## Start postgresql from the pgvector container image
+	podman run -d --name pgvector --rm -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	 -p $(POSTGRES_PORT):5432 \
+	 -v $(PWD)/postgresql/data:/var/lib/postgresql/data:Z pgvector/pgvector:pg16
+
+start-postgres-debug: ## Start postgresql from the pgvector container image with debugging enabled
+	mkdir -pv ./postgresql/data
+	podman run --name pgvector --rm -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	 -p $(POSTGRES_PORT):5432 \
+	 -v ./postgresql/data:/var/lib/postgresql/data:Z pgvector/pgvector:pg16 \
+	 postgres -c log_statement=all -c log_destination=stderr
+
+prepare-sample-plain-text-folder: ## Prepare the sample plain text folder for generating embeddings
+	mkdir -pv ./product_docs
+	mkdir -pv ./output
+	cp ./LICENSE ./product_docs/LICENSE.txt
+
+generate-embeddings-postgres: ## Generate embeddings for postgres vector store
+	POSTGRES_USER=$(POSTGRES_USER) \
+	POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	POSTGRES_HOST=$(POSTGRES_HOST) \
+	POSTGRES_PORT=$(POSTGRES_PORT) \
+	POSTGRES_DATABASE=$(POSTGRES_DATABASE) \
+	pdm run python scripts/generate_embeddings_postgres_sample.py \
+	 -f $(PLAIN_TEXT_FOLDER) \
+	 -mn $(EMBEDDINGS_MODEL) \
+	 -o $(OUTPUT_FOLDER) \
+	 -i $(PRODUCT_INDEX) \
+	 --vector-store-type postgres
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
