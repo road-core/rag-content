@@ -69,13 +69,13 @@ build-base-image: ## Build base container image
 start-postgres:
 	podman run -d --name pgvector --rm -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	 -p $(POSTGRES_PORT):5432 \
-	 -v $(PWD)/postgresql/data:/var/lib/postgresql/data:Z ankane/pgvector
+	 -v $(PWD)/postgresql/data:/var/lib/postgresql/data:Z pgvector/pgvector:pg16
 
 start-postgres-debug:
 	mkdir -pv ./postgresql/data
 	podman run --name pgvector --rm -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	 -p $(POSTGRES_PORT):5432 \
-	 -v ./postgresql/data:/var/lib/postgresql/data:Z ankane/pgvector \
+	 -v ./postgresql/data:/var/lib/postgresql/data:Z pgvector/pgvector:pg16 \
 	 postgres -c log_statement=all -c log_destination=stderr
 
 prepare-sample-plain-text-folder:
