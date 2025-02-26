@@ -66,23 +66,23 @@ build-image-ocp-example: build-base-image ## Build a rag-content container image
 build-base-image: ## Build base container image
 	podman build -t $(TORCH_GROUP)-road-core-base -f Containerfile.base --build-arg FLAVOR=$(TORCH_GROUP)
 
-start-postgres:
+start-postgres: ## Start postgresql from the pgvector container image
 	podman run -d --name pgvector --rm -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	 -p $(POSTGRES_PORT):5432 \
 	 -v $(PWD)/postgresql/data:/var/lib/postgresql/data:Z pgvector/pgvector:pg16
 
-start-postgres-debug:
+start-postgres-debug: ## Start postgresql from the pgvector container image with debugging enabled
 	mkdir -pv ./postgresql/data
 	podman run --name pgvector --rm -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	 -p $(POSTGRES_PORT):5432 \
 	 -v ./postgresql/data:/var/lib/postgresql/data:Z pgvector/pgvector:pg16 \
 	 postgres -c log_statement=all -c log_destination=stderr
 
-prepare-sample-plain-text-folder:
+prepare-sample-plain-text-folder: ## Prepare the sample plain text folder for generating embeddings
 	mkdir -pv ./product_docs
 	cp ./LICENSE ./product_docs/LICENSE.txt
 
-generate-embeddings-postgres:
+generate-embeddings-postgres: ## Generate embeddings for postgres vector store
 	POSTGRES_USER=$(POSTGRES_USER) \
 	POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	POSTGRES_HOST=$(POSTGRES_HOST) \
