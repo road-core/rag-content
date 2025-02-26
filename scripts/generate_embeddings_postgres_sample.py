@@ -5,8 +5,6 @@ import os
 import sys
 import time
 
-from llama_index.readers.file.flat.base import FlatReader
-
 # Add the common_embedding.py to the Python path
 scripts_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(scripts_dir)

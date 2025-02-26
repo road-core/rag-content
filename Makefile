@@ -20,7 +20,7 @@ POSTGRES_DATABASE ?= postgres
 EMBEDDINGS_MODEL ?= sentence-transformers/all-mpnet-base-v2
 
 PLAIN_TEXT_FOLDER ?= ./product_docs
-OUTPUT_FOLDER ?= .
+OUTPUT_FOLDER ?= ./output
 PRODUCT_INDEX ?= product_index
 
 install-tools: ## Install required utilities/tools
@@ -80,6 +80,7 @@ start-postgres-debug: ## Start postgresql from the pgvector container image with
 
 prepare-sample-plain-text-folder: ## Prepare the sample plain text folder for generating embeddings
 	mkdir -pv ./product_docs
+	mkdir -pv ./output
 	cp ./LICENSE ./product_docs/LICENSE.txt
 
 generate-embeddings-postgres: ## Generate embeddings for postgres vector store

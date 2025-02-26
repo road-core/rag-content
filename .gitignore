@@ -162,4 +162,7 @@ embeddings_model/
 
 .pdm-python
 
+# postgres vector store sample
 product_docs/
+postgresql/
+output/
