@@ -28,6 +28,6 @@ RUN if [[ $(echo $LD_LIBRARY_PATH) == *"/usr/local/cuda-12.6/compat"* ]]; then \
 COPY scripts/download_embeddings_model.py .
 RUN pdm run python download_embeddings_model.py -l ./embeddings_model -r ${EMBEDDING_MODEL}
 
-COPY scripts/common_embeddings.py scripts/generate_embeddings.py ./
+COPY scripts/generate_embeddings_openshift.py ./
 
 LABEL description="Contains embedding model and dependencies needed to generate a vector database"
