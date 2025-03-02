@@ -73,7 +73,16 @@ the following command:
 
 ### Generating the RAG vector database
 
-In order to generating the RAG vector database using the
+You can generate the RAG vector database either using
+
+1. [Faiss Vector Store](#faiss-vector-store), or
+2. [Postgres (PGVector) Vector Store](#postgres-pgvector-vector-store)
+
+#### Faiss Vector Store
+
+In order to generate the RAG vector database using 
+Faiss Vector Store with
+the
 **sentend-transformers/all-mpnet-base-v2** embedding model and OpenShift
 documentation version 4.15 run the following commands:
 
@@ -90,27 +99,38 @@ Index ID set to **ocp-product-docs-4_15**.
 These dictories and index ID can now be used to configure OpenShift
 Lightspeed.
 
-### Generating a RAG vector database using Postgres (pgvector)
+#### Postgres (PGVector) Vector Store
 
-This repository contains a sample code to generate a RAG vector database using Postgres
-pgvector extension.
+In order to generate the RAG vector database using 
+Postgres (PGVector) Vector Store run the following commands:
 
-1. [Download the embedding model](#download-the-embedding-model)
-2. Create a sample plain text folder by running
-    ```
-    make prepare-sample-plain-text-folder
-    ```
-   which creates the `./product_docs` folder and copies the `LICENSE` file from the project
-   root folder.
-3. Start Postgres with the pgvector by running
+1. Start Postgres with the pgvector extension by running
     ```
     make start-postgres-debug
     ```
-   which runs Postgres using `podman`. The `data` folder of Postgres is created at
-   './postgresql/data'.
-4. Run
+   The `data` folder of Postgres is created at
+   `./postgresql/data`. This command also creates `./output` for the 
+   output directory, in which the metadata is saved.
+2. Run
     ```
     make generate-embeddings-postgres
     ```
    which generates embeddings on Postgres, which can be used for RAG, and `metadata.json`
-   in the project's root holder.
+   in `./output`. Generated embeddings are stored in the `data_ocp_product_docs_4_15` table
+   on the Postgres DB.
+
+   ```commandline
+   $ podman exec -it pgvector bash
+   root@42b7f8fcfe9b:/# psql -U postgres
+   psql (16.4 (Debian 16.4-1.pgdg120+2))
+   Type "help" for help.
+   
+   postgres=# \dt
+                      List of relations
+    Schema |            Name            | Type  |  Owner   
+   --------+----------------------------+-------+----------
+    public | data_ocp_product_docs_4_15 | table | postgres
+   (1 row)
+   
+   postgres=#
+   ```

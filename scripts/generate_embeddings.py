@@ -83,7 +83,7 @@ if __name__ == "__main__":
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
     settings, embedding_dimension, storage_context = get_settings(
-        args.chunk, args.overlap, args.model_dir
+        args.chunk, args.overlap, args.model_dir, args.vector_store_type, args.index
     )
 
     metadata_processor = OpenshiftDocsMetadata(EMBEDDINGS_ROOT_DIR, args.ocp_version)
