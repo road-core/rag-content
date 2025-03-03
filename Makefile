@@ -62,6 +62,7 @@ build-base-image: ## Build base container image
 	podman build -t $(TORCH_GROUP)-road-core-base -f Containerfile.base --build-arg FLAVOR=$(TORCH_GROUP)
 
 start-postgres: ## Start postgresql from the pgvector container image
+	mkdir -pv ./postgresql/data ./output
 	podman run -d --name pgvector --rm -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 	 -p $(POSTGRES_PORT):5432 \
 	 -v $(PWD)/postgresql/data:/var/lib/postgresql/data:Z pgvector/pgvector:pg16
