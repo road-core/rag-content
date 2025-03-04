@@ -80,7 +80,7 @@ generate-embeddings-postgres: ## Generate embeddings for postgres vector store
 	POSTGRES_HOST=$(POSTGRES_HOST) \
 	POSTGRES_PORT=$(POSTGRES_PORT) \
 	POSTGRES_DATABASE=$(POSTGRES_DATABASE) \
-	pdm run python scripts/generate_embeddings.py \
+	pdm run python scripts/generate_embeddings_openshift.py \
 	 -o ./output \
 	 -f ocp-product-docs-plaintext/4.15/ \
 	 -r runbooks/ \

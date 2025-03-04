@@ -30,6 +30,7 @@ from llama_index.core.schema import TextNode
 from llama_index.core.storage.storage_context import StorageContext
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.vector_stores.faiss import FaissVectorStore
+from llama_index.vector_stores.postgres import PGVectorStore
 
 LOG = logging.getLogger(__name__)
 
@@ -40,12 +41,15 @@ DocumentSettings = namedtuple(
 class DocumentProcessor(object):
 
     def __init__(self, chunk_size: int, chunk_overlap: int, model_name: str,
-                 embeddings_model_dir: Path, num_workers: int = 0):
+                 embeddings_model_dir: Path, num_workers: int = 0,
+                 vector_store_type: str = "faiss", table_name: str = "table_name"):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.model_name = model_name
         self.embeddings_model_dir = embeddings_model_dir
         self.num_workers = num_workers
+        self.vector_store_type = vector_store_type
+        self.table_name = table_name
 
         if self.num_workers <= 0:
             self.num_workers = None
@@ -71,8 +75,30 @@ class DocumentProcessor(object):
 
         embedding_dimension = len(
             Settings.embed_model.get_text_embedding("random text"))
-        faiss_index = faiss.IndexFlatIP(embedding_dimension)
-        vector_store = FaissVectorStore(faiss_index=faiss_index)
+        if self.vector_store_type == "faiss":
+            faiss_index = faiss.IndexFlatIP(embedding_dimension)
+            vector_store = FaissVectorStore(faiss_index=faiss_index)
+        elif self.vector_store_type == "postgres":
+            user = os.getenv("POSTGRES_USER")
+            password = os.getenv("POSTGRES_PASSWORD")
+            host = os.getenv("POSTGRES_HOST")
+            port = os.getenv("POSTGRES_PORT")
+            database = os.getenv("POSTGRES_DATABASE")
+
+            table_name = self.table_name
+
+            vector_store = PGVectorStore.from_params(
+                database=database,
+                host=host,
+                password=password,
+                port=port,
+                user=user,
+                table_name=table_name,
+                embed_dim=embedding_dimension,  # openai embedding dimension
+            )
+        else:
+            raise RuntimeError(f"Unknown vector store type: {self.vector_store_type}")
+
         storage_context = StorageContext.from_defaults(
             vector_store=vector_store)
 
@@ -112,7 +138,10 @@ class DocumentProcessor(object):
         metadata["llm"] = "None"
         metadata["embedding-model"] = self.model_name
         metadata["index-id"] = index
-        metadata["vector-db"] = "faiss.IndexFlatIP"
+        if self.vector_store_type == "faiss":
+            metadata["vector-db"] = "faiss.IndexFlatIP"
+        elif self.vector_store_type == "postgres":
+            metadata["vector-db"] = "PGVectorStore"
         metadata["embedding-dimension"] = self._settings.embedding_dimension
         metadata["chunk"] = self.chunk_size
         metadata["overlap"] = self.chunk_overlap
