@@ -80,7 +80,7 @@ documentation version 4.15 run the following commands:
 ```
 mkdir -p vector_db/ocp_product_docs/4.15
 
-./scripts/generate_embeddings.py -o ./vector_db/ocp_product_docs/4.15 -f ocp-product-docs-plaintext/4.15/ -r runbooks/ -md embeddings_model/ -mn sentence-transformers/all-mpnet-base-v2 -v 4.15 -i ocp-product-docs-4_15
+./scripts/generate_embeddings_openshift.py -o ./vector_db/ocp_product_docs/4.15 -f ocp-product-docs-plaintext/4.15/ -r runbooks/ -md embeddings_model/ -mn sentence-transformers/all-mpnet-base-v2 -v 4.15 -i ocp-product-docs-4_15
 ```
 
 Once the command is done, you can find the vector database at
