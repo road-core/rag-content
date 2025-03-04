@@ -73,4 +73,10 @@ def get_common_arg_parser() -> argparse.ArgumentParser:
             "negative value by default, turning parallelism off"
         ),
     )
+    parser.add_argument(
+        "--vector-store-type",
+        default="faiss",
+        choices=["faiss", "postgres"],
+        help="vector store type to be used."
+    )
     return parser
