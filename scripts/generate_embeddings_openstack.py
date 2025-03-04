@@ -52,7 +52,9 @@ if __name__ == "__main__":
 
     # Instantiate Document Processor
     document_processor = DocumentProcessor(
-        args.chunk, args.overlap, args.model_name, args.model_dir, args.workers)
+        args.chunk, args.overlap, args.model_name, args.model_dir, args.workers,
+        args.vector_store_type, args.index.replace("-", "_"),
+    )
 
     # Process documents
     document_processor.process(
