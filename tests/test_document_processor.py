@@ -87,12 +87,12 @@ class TestMetadataProcessor(unittest.TestCase):
         expected_dict = {
             "execution-time": mock.ANY,
             "llm": "None",
-            "embedding-model": "sentence-transformers/all-mpnet-base-v2",
+            "embedding-model": self.model_name,
             "index-id": "fake-index",
             "vector-db": "faiss.IndexFlatIP",
             "embedding-dimension": mock.ANY,
-            "chunk": 380,
-            "overlap": 0,
+            "chunk": self.chunk_size,
+            "overlap": self.chunk_overlap,
             "total-embedded-files": 0
         }
         mock_dumps.assert_called_once_with(expected_dict)
