@@ -4,7 +4,7 @@ ARG OCP_DOCS_VERSION="4.15"
 ARG NUM_WORKERS=1
 
 USER 0
-WORKDIR /workdir
+WORKDIR /rag-content
 
 COPY ./scripts/get_ocp_plaintext_docs.sh ./scripts/get_runbooks.sh ./
 COPY ./scripts/asciidoctor-text ./asciidoctor-text
@@ -16,9 +16,15 @@ RUN ./get_ocp_plaintext_docs.sh $OCP_DOCS_VERSION
 RUN ./get_runbooks.sh
 
 RUN set -e && for OCP_VERSION in $(ls -1 ocp-product-docs-plaintext); do \
-        pdm run python generate_embeddings_openshift.py -f ocp-product-docs-plaintext/${OCP_VERSION} -r runbooks/alerts -md embeddings_model \
-            -mn ${EMBEDDING_MODEL} -o vector_db/ocp_product_docs/${OCP_VERSION} -w ${NUM_WORKERS} \
-            -i ocp-product-docs-$(echo $OCP_VERSION | sed 's/\./_/g') -v ${OCP_VERSION}; \
+        python ./scripts/generate_embeddings_openshift.py \
+            -f ocp-product-docs-plaintext/${OCP_VERSION} \
+            -r runbooks/alerts \
+            -md embeddings_model \
+            -mn ${EMBEDDING_MODEL} \
+            -o vector_db/ocp_product_docs/${OCP_VERSION} \
+            -w ${NUM_WORKERS} \
+            -i ocp-product-docs-$(echo $OCP_VERSION | sed 's/\./_/g') \
+            -v ${OCP_VERSION}; \
     done
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest

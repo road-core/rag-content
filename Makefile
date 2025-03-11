@@ -17,6 +17,9 @@ install-tools: ## Install required utilities/tools
 pdm-lock-check: ## Check that the pdm.lock file is in a good shape
 	pdm lock --check --group $(TORCH_GROUP) --lockfile pdm.lock.$(TORCH_GROUP)
 
+install-global: install-tools pdm-lock-check ## Install ligthspeed-rag-content to global Python directories
+	pdm install --global --project . --group $(TORCH_GROUP) --lockfile pdm.lock.$(TORCH_GROUP)
+
 install-hooks: install-deps-test ## Install commit hooks
 	pdm run pre-commit install
 
