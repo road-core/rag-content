@@ -1,21 +1,5 @@
 # Road RAG content
 
-## `requirements*` files generation
-
-In order to generate all requirements files:
-
-```
-requirements-build.in
-requirements-build.txt
-requirements.txt
-```
-
-The following command must be executed:
-
-```bash
-scripts/generate_packages_to_prefetch.py
-```
-
 # Generating the RAG for OpenShift
 
 This guide outlines the steps for generating an example OpenShift Lightspeed
@@ -134,3 +118,19 @@ Postgres (PGVector) Vector Store run the following commands:
    
    postgres=#
    ```
+
+## `requirements*` files generation for conflux
+
+In order to generate all requirements files:
+
+```
+requirements-build.in
+requirements-build.txt
+requirements.txt
+```
+
+The following command must be executed:
+
+```bash
+scripts/generate_packages_to_prefetch.py
+```
