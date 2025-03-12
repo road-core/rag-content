@@ -13,12 +13,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import unittest
 from unittest import mock
 
 from llama_index.core.schema import TextNode
-
 from lightspeed_rag_content import document_processor
+
+
+# Mock class for HuggingFaceEmbedding
+class MockEmbedding:
+    def __init__(self, model_name="ABC"):
+        pass
+
+    def get_text_embedding(self, text):
+        return "ABC"
 
 
 class TestMetadataProcessor(unittest.TestCase):
@@ -32,11 +41,11 @@ class TestMetadataProcessor(unittest.TestCase):
 
         # Mock the _get_settings() method
         self.settings_obj = mock.MagicMock()
-        patcher = mock.patch.object(
+        self.patcher = mock.patch.object(
                 document_processor.DocumentProcessor, "_get_settings")
-        self._settings = patcher.start()
+        self._settings = self.patcher.start()
         self._settings.return_value = self.settings_obj
-        self.addCleanup(patcher.stop)
+        self.addCleanup(self.patcher.stop)
 
         self.doc_processor = document_processor.DocumentProcessor(
                 self.chunk_size, self.chunk_overlap, self.model_name,
@@ -122,3 +131,28 @@ class TestMetadataProcessor(unittest.TestCase):
 
         mock_index.assert_called_once_with("fake-index", "/fake/output_dir")
         mock_md.assert_called_once_with("fake-index", "/fake/output_dir")
+
+    @mock.patch.dict(os.environ, {
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "somesecret",
+        "POSTGRES_HOST": "localhost",
+        "POSTGRES_PORT": "15432",
+        "POSTGRES_DATABASE": "postgres",
+    })
+    @mock.patch("lightspeed_rag_content.document_processor.HuggingFaceEmbedding", new=MockEmbedding)
+    def test_pgvector(self):
+        self.patcher.stop()  # Remove the mock on the _get_settings() method
+        self.doc_processor = document_processor.DocumentProcessor(
+            self.chunk_size, self.chunk_overlap, self.model_name,
+            self.embeddings_model_dir, self.num_workers,
+            "postgres")
+        self.assertIsNotNone(self.doc_processor)
+
+    @mock.patch("lightspeed_rag_content.document_processor.HuggingFaceEmbedding", new=MockEmbedding)
+    def test_invalid_vector_store_type(self):
+        self.patcher.stop()  # Remove the mock on the _get_settings() method
+        self.assertRaises(RuntimeError,
+            document_processor.DocumentProcessor,
+            self.chunk_size, self.chunk_overlap, self.model_name,
+            self.embeddings_model_dir, self.num_workers,
+            "nonexisting")

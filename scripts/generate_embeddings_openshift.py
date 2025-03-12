@@ -70,19 +70,25 @@ if __name__ == "__main__":
         RUNBOOKS_ROOT_DIR = RUNBOOKS_ROOT_DIR[:-1]
 
     # Instantiate Metadata Processor
+    print("Instantiate Metadata Processor")
     metadata_processor = OpenshiftDocsMetadata(
         EMBEDDINGS_ROOT_DIR, args.ocp_version)
 
     runbooks_metadata_processor = OpenshiftRunbooksMetadata(RUNBOOKS_ROOT_DIR)
 
     # Instantiate Document Processor
+    print("Instantiate Document Processor")
     document_processor = DocumentProcessor(
-        args.chunk, args.overlap, args.model_name, args.model_dir, args.workers)
+        args.chunk, args.overlap, args.model_name, args.model_dir, args.workers,
+        args.vector_store_type, args.index.replace("-", "_"),
+    )
 
     # Process OpenShift documents
+    print("Process OpenShift documents")
     document_processor.process(args.folder, metadata=metadata_processor)
 
     # Process Runbooks
+    print("Process Runbooks")
     document_processor.process(
         args.runbooks,
         metadata=runbooks_metadata_processor,

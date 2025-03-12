@@ -161,3 +161,7 @@ embeddings_model/
 # PDM
 
 .pdm-python
+
+# postgres vector store sample
+postgresql/
+output/
