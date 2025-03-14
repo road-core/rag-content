@@ -30,7 +30,7 @@ The command below downloads the OCP documentation version 4.15 and
 converts it to plain text:
 
 ```
-./scripts/get_ocp_plaintext_docs.sh 4.15
+./examples/get_ocp_plaintext_docs.sh 4.15
 ```
 
 Note, this step requires the command "asciidoctor" to be installed. See
@@ -42,7 +42,7 @@ instructions.
 Download the runbooks by running the following script:
 
 ```
-./scripts/get_runbooks.sh
+./examples/get_runbooks.sh
 ```
 
 ### Download the embedding model
@@ -73,7 +73,7 @@ documentation version 4.15 run the following commands:
 ```
 mkdir -p vector_db/ocp_product_docs/4.15
 
-./scripts/generate_embeddings_openshift.py -o ./vector_db/ocp_product_docs/4.15 -f ocp-product-docs-plaintext/4.15/ -r runbooks/ -md embeddings_model/ -mn sentence-transformers/all-mpnet-base-v2 -v 4.15 -i ocp-product-docs-4_15
+./examples/generate_embeddings_openshift.py -o ./vector_db/ocp_product_docs/4.15 -f ocp-product-docs-plaintext/4.15/ -r runbooks/ -md embeddings_model/ -mn sentence-transformers/all-mpnet-base-v2 -v 4.15 -i ocp-product-docs-4_15
 ```
 
 Once the command is done, you can find the vector database at
