@@ -54,9 +54,9 @@ verify: check-types ## Verify the code using various linters
 
 update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	@set -e && for OCP_VERSION in $$(ls -1 ocp-product-docs-plaintext); do \
-		scripts/get_ocp_plaintext_docs.sh $$OCP_VERSION; \
+		examples/get_ocp_plaintext_docs.sh $$OCP_VERSION; \
 	done
-	scripts/get_runbooks.sh
+	examples/get_runbooks.sh
 
 build-image-ocp-example: build-base-image ## Build a rag-content container image
 	podman build -t rag-content -f examples/Containerfile.ocp_lightspeed --build-arg FLAVOR=$(TORCH_GROUP) --build-arg NUM_WORKERS=$(NUM_WORKERS) .
@@ -83,7 +83,7 @@ generate-embeddings-postgres: ## Generate embeddings for postgres vector store
 	POSTGRES_HOST=$(POSTGRES_HOST) \
 	POSTGRES_PORT=$(POSTGRES_PORT) \
 	POSTGRES_DATABASE=$(POSTGRES_DATABASE) \
-	pdm run python scripts/generate_embeddings_openshift.py \
+	pdm run python examples/generate_embeddings_openshift.py \
 	 -o ./output \
 	 -f ocp-product-docs-plaintext/4.15/ \
 	 -r runbooks/ \
