@@ -1,0 +1,17 @@
+ARG FLAVOR=cpu
+FROM ${FLAVOR}-road-core-base as road-core-rag-builder
+ENV OCP_DOCS_VERSION="4.15"
+ENV TEST_QUERY="What is Openshift?"
+ENV SCORE_THRESHOLD="0.6"
+
+COPY ./scripts/query_rag.py .
+
+COPY --from=ocp-rag-content /rag/vector_db/ocp_product_docs /rag/vector_db/ocp_product_docs
+COPY --from=ocp-rag-content /rag/embeddings_model /rag/embeddings_model
+
+# Run test on the database
+CMD python query_rag.py --db-path /rag/vector_db/ocp_product_docs/$OCP_DOCS_VERSION/ \
+    -x ocp-product-docs-$(echo $OCP_DOCS_VERSION | sed 's/\./_/g') \
+    --model-path /rag/embeddings_model \
+    -t $SCORE_THRESHOLD \
+    --query "$TEST_QUERY"
