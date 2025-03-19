@@ -12,8 +12,12 @@ implementations.
 ## Installing the Python library
 
 The ``lightspeed_rag_content`` library is not available via pip but is included
-in the base container image. To use it, you can manually generate or pull the
-base container image as follows:
+in the base container image or can be installed via ``pdm``.
+
+### Via container image
+
+The base container image can be manually generated or pulled from a
+container registry.
 
 1. Install the requirements: ``make`` and ``podman``.
 
@@ -34,7 +38,24 @@ lightspeed_rag_content
 Alternatively, to pull the latest version of the base container image, run:
 
 ```bash
-podman pull ghcr.io/road-core/rag-content-cpu:latest
+$ podman pull ghcr.io/road-core/rag-content-cpu:latest
+```
+
+### Via PDM
+
+To install the library via PDM, do:
+
+1. Run the command ``pdm install``
+
+```bash
+$ pdm install
+```
+
+2. Test if the library can be imported
+
+```bash
+$ pdm run python -c "import lightspeed_rag_content; print(lightspeed_rag_content.__name__)"
+lightspeed_rag_content
 ```
 
 ## Using the Python library
