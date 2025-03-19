@@ -6,7 +6,7 @@ ARG NUM_WORKERS=1
 USER 0
 WORKDIR /rag-content
 
-COPY ./scripts/get_ocp_plaintext_docs.sh ./scripts/get_runbooks.sh ./
+COPY ./examples/get_ocp_plaintext_docs.sh ./examples/get_runbooks.sh ./
 COPY ./scripts/asciidoctor-text ./asciidoctor-text
 # Modify script inplace to account for new path
 RUN sed -i 's/scripts\/asciidoctor-text/asciidoctor-text/' get_ocp_plaintext_docs.sh
@@ -16,7 +16,7 @@ RUN ./get_ocp_plaintext_docs.sh $OCP_DOCS_VERSION
 RUN ./get_runbooks.sh
 
 RUN set -e && for OCP_VERSION in $(ls -1 ocp-product-docs-plaintext); do \
-        python ./scripts/generate_embeddings_openshift.py \
+        python ./examples/generate_embeddings_openshift.py \
             -f ocp-product-docs-plaintext/${OCP_VERSION} \
             -r runbooks/alerts \
             -md embeddings_model \
