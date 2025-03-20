@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
     attribute_list: list = []
     if args.attributes is not None:
-        attributes = os.path.normpath(os.path.join(os.getcwd(), args.attributes))
-        with open(attributes, "r") as fin:
+        attributes_path = os.path.normpath(os.path.join(os.getcwd(), args.attributes))
+        with open(attributes_path, "r") as fin:
             attributes = yaml.safe_load(fin)
         for key, value in attributes.items():
             attribute_list = [*attribute_list, "-a", key + "=%s" % value]
