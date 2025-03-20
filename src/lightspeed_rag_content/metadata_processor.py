@@ -12,6 +12,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""Metadata handling for document nodes in vector database."""
 
 import abc
 import logging
@@ -22,17 +23,15 @@ import requests
 LOG = logging.getLogger(__name__)
 
 
-class MetadataProcessor(object):
-    """Metadata processing callback with memory of unreachable URLS.
-    FileMetadataProcessor keeps a list of processed files,
-    their titles, URLs and if their URLs were reachable.
+class MetadataProcessor:
+    """Metadata processing callback.
 
     Projects should make their own metadata processors.
     Specifically, the `url_function` which is meant to derive URL
     from name of a document, is not implemented.
     """
 
-    def get_file_title(sel, file_path: str) -> str:
+    def get_file_title(self, file_path: str) -> str:
         """Extract title from the plaintext doc file."""
         title = ""
         try:
@@ -69,15 +68,21 @@ class MetadataProcessor(object):
         }
 
         if not self.ping_url(docs_url):
-            LOG.warning('URL not reachable: %(url)s (Title: "%(title)s", '
-                        'File path: %(file_path)s)', document)
+            LOG.warning(
+                'URL not reachable: %(url)s (Title: "%(title)s", '
+                "File path: %(file_path)s)",
+                document,
+            )
 
-        LOG.debug('Metadata populated for: "%(title)s" (URL: %(url)s, File '
-                  'path: %(file_path)s)', document)
+        LOG.debug(
+            'Metadata populated for: "%(title)s" (URL: %(url)s, File '
+            "path: %(file_path)s)",
+            document,
+        )
 
         return {"docs_url": docs_url, "title": title}
 
     @abc.abstractmethod
     def url_function(self, file_path: str) -> str:
-        """This function must be implemeted in the derived class"""
+        """Derive URL to document source from given file path."""
         raise NotImplementedError
