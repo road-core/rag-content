@@ -3,9 +3,9 @@
 
 import argparse
 import os
+import shutil
 
 from huggingface_hub import snapshot_download
-import shutil
 
 if __name__ == "__main__":
 

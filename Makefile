@@ -44,13 +44,13 @@ check-types: ## Checks type hints in sources
 	pdm run mypy --explicit-package-bases --disallow-untyped-calls --disallow-untyped-defs --disallow-incomplete-defs scripts
 
 format: ## Format the code into unified format
-	pdm run black scripts
-	pdm run ruff check scripts --fix --per-file-ignores=scripts/*:S101
+	pdm run black scripts src
+	pdm run ruff check scripts src --fix --per-file-ignores=scripts/*:S101
 	pdm run pre-commit run
 
 verify: check-types ## Verify the code using various linters
-	pdm run black --check scripts
-	pdm run ruff check scripts --per-file-ignores=scripts/*:S101
+	pdm run black --check scripts src
+	pdm run ruff check scripts src --per-file-ignores=scripts/*:S101
 
 update-docs: ## Update the plaintext OCP docs in ocp-product-docs-plaintext/
 	@set -e && for OCP_VERSION in $$(ls -1 ocp-product-docs-plaintext); do \

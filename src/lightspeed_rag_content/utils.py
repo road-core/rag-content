@@ -12,17 +12,15 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
+"""Utilities for rag-content modules."""
 import argparse
 
 
 def get_common_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Embedding CLI for task execution")
+    """Provide common CLI arguments to document processing scripts."""
+    parser = argparse.ArgumentParser(description="Embedding CLI for task execution")
     parser.add_argument(
-        "-f",
-        "--folder",
-        help="Directory containing the plain text documentation"
+        "-f", "--folder", help="Directory containing the plain text documentation"
     )
     parser.add_argument(
         "-md",
@@ -30,23 +28,12 @@ def get_common_arg_parser() -> argparse.ArgumentParser:
         default="embeddings_model",
         help="Directory containing the embedding model",
     )
+    parser.add_argument("-mn", "--model-name", help="HF repo id of the embedding model")
     parser.add_argument(
-        "-mn",
-        "--model-name",
-        help="HF repo id of the embedding model")
-    parser.add_argument(
-        "-c",
-        "--chunk",
-        type=int,
-        default=380,
-        help="Chunk size for embedding"
+        "-c", "--chunk", type=int, default=380, help="Chunk size for embedding"
     )
     parser.add_argument(
-        "-l",
-        "--overlap",
-        type=int,
-        default=0,
-        help="Chunk overlap for embedding"
+        "-l", "--overlap", type=int, default=0, help="Chunk overlap for embedding"
     )
     parser.add_argument(
         "-em",
@@ -55,14 +42,8 @@ def get_common_arg_parser() -> argparse.ArgumentParser:
         default=None,
         help="Metadata to be excluded during embedding",
     )
-    parser.add_argument(
-        "-o",
-        "--output",
-        help="Vector DB output folder")
-    parser.add_argument(
-        "-i",
-        "--index",
-        help="Product index")
+    parser.add_argument("-o", "--output", help="Vector DB output folder")
+    parser.add_argument("-i", "--index", help="Product index")
     parser.add_argument(
         "-w",
         "--workers",
@@ -77,6 +58,6 @@ def get_common_arg_parser() -> argparse.ArgumentParser:
         "--vector-store-type",
         default="faiss",
         choices=["faiss", "postgres"],
-        help="vector store type to be used."
+        help="vector store type to be used.",
     )
     return parser
