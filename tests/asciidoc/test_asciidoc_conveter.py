@@ -121,13 +121,17 @@ class TestAsciidoctorConverter(unittest.TestCase):
         adoc_text_converter.convert(self.input_file, output_file)
         output_file.parent.mkdir.assert_called_once()
 
-    def test__get_default_converter_file(self):
-        converter_file = AsciidoctorConverter._get_default_converter_file("text")
+    def test__get_converter_file(self):
+        converter_file = AsciidoctorConverter._get_converter_file("text")
         self.assertEqual(converter_file, RUBY_ASCIIDOC_DIR.joinpath("asciidoc_text_converter.rb"))
 
-    def test__get_default_converter_file_invalid_format(self):
+    def test__get_converter_file_asciidoctor_built_in_format(self):
+        converter_file = AsciidoctorConverter._get_converter_file("html5")
+        self.assertEqual(converter_file, None)
+
+    def test__get_converter_file_invalid_format(self):
         with self.assertRaises(FileNotFoundError):
-            AsciidoctorConverter._get_default_converter_file("invalid")
+            AsciidoctorConverter._get_converter_file("invalid")
 
     @patch("lightspeed_rag_content.asciidoc.asciidoctor_converter.shutil.which")
     def test__get_asciidoctor_path_missing(self, mock_which):

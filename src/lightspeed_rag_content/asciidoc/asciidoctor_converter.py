@@ -75,7 +75,9 @@ class AsciidoctorConverter:
         """Initialize AsciidoctorConverter.
 
         Args:
-            target_format: A format to which input files should be converted.
+            target_format:
+                A format to which input files should be converted. These formats
+                are currently supported: text, html5, xhtml5, manpage.
             attributes_file: A path pointing to an attributes file.
             converter_file: An asciidoctor compatible extension.
 
@@ -89,23 +91,27 @@ class AsciidoctorConverter:
         self.target_format = target_format
         self.attribute_list = self._get_attribute_list(attributes_file)
 
-        if converter_file:
-            self.converter_file = converter_file
+        if not converter_file:
+            self.converter_file = self._get_converter_file(target_format)
         else:
-            self.converter_file = self._get_default_converter_file(target_format)
+            self.converter_file = converter_file
 
         self.asciidoctor_cmd = self._get_asciidoctor_path()
 
     @staticmethod
-    def _get_default_converter_file(target_format: str) -> Path:
-        """Return path to asciidoctor Ruby based extension."""
+    def _get_converter_file(target_format: str) -> Path | None:
+        """Return converter file if target_format requires one."""
+        asciidoctor_supported_formats = ["html5", "xhtml5", "manpage"]
+        if target_format in asciidoctor_supported_formats:
+            return None
+
         converter_files = {
             "text": "asciidoc_text_converter.rb",
         }
 
         if not (converter_file := converter_files.get(target_format, None)):
             raise FileNotFoundError(
-                f"There is no built-in extension for target format: {target_format}"
+                f"There is no extension available for target format: {target_format}"
             )
 
         return RUBY_ASCIIDOC_DIR.joinpath(converter_file)

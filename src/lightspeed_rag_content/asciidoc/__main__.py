@@ -123,6 +123,7 @@ def get_argument_parser() -> argparse.ArgumentParser:
         required=False,
         type=str,
         default="text",
+        choices=["text", "html5", "xhtml5", "manpage"],
         help="Target format in which the input file should be saved.",
     )
 
