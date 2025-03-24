@@ -123,7 +123,7 @@ class AsciidoctorConverter:
         if not asciidoctor_path:
             raise FileNotFoundError("asciidoctor executable not found")
 
-        LOG.info(f"Using asciidoctor with {asciidoctor_path} path")
+        LOG.info("Using asciidoctor with %s path", asciidoctor_path)
         return asciidoctor_path
 
     @staticmethod
@@ -156,12 +156,13 @@ class AsciidoctorConverter:
             subprocess.CalledSubprocessError:
                 If an error occurs when running asciidoctor.
         """
-        LOG.info("Processing: " + str(source_file.absolute()))
+        LOG.info("Processing: %s", str(source_file.absolute()))
         if not destination_file.exists():
             destination_file.parent.mkdir(parents=True, exist_ok=True)
         else:
             LOG.warning(
-                f"Destination file {destination_file} exists. It will be overwritten!"
+                "Destination file %s exists. It will be overwritten!",
+                destination_file,
             )
 
         command = [self.asciidoctor_cmd]
