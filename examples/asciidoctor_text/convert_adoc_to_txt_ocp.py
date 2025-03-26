@@ -127,7 +127,7 @@ def main():
 
     for filename in file_list:
         input_file = input_dir.joinpath(filename.with_suffix(".adoc"))
-        output_file = output_dir.joinpath(filename.with_suffix(".adoc"))
+        output_file = output_dir.joinpath(filename.with_suffix(".txt"))
 
         try:
             adoc_text_converter.convert(input_file, output_file)
