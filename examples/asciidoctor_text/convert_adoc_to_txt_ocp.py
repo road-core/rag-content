@@ -132,8 +132,8 @@ def main():
         try:
             adoc_text_converter.convert(input_file, output_file)
         except subprocess.CalledProcessError as e:
-            LOG.warning(e.stderr)
-            LOG.warning(e.stdout)
+            LOG.exception(e.stderr)
+            LOG.exception(e.stdout)
             continue
 
 
@@ -141,5 +141,5 @@ if __name__ == "__main__":
     try:
         main()
     except FileNotFoundError as e:
-        LOG.error(e)
+        LOG.exception(e)
         sys.exit(1)
