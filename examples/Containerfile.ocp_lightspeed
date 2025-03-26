@@ -7,9 +7,9 @@ USER 0
 WORKDIR /rag-content
 
 COPY ./examples/get_ocp_plaintext_docs.sh ./examples/get_runbooks.sh ./
-COPY ./scripts/asciidoctor-text ./asciidoctor-text
+COPY ./examples/asciidoctor_text ./asciidoctor_text
 # Modify script inplace to account for new path
-RUN sed -i 's/scripts\/asciidoctor-text/asciidoctor-text/' get_ocp_plaintext_docs.sh
+RUN sed -i 's/examples\/asciidoctor_text/asciidoctor_text/' get_ocp_plaintext_docs.sh
 RUN ./get_ocp_plaintext_docs.sh $OCP_DOCS_VERSION
 RUN ./get_runbooks.sh
 
