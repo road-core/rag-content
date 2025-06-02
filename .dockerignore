@@ -1,0 +1,4 @@
+# Generated files, dont copy from local path during build
+ocp-product-docs-plaintext
+rhdh-product-docs-plaintext
+rhdh-docs-topic-map

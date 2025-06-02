@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+
+"""Utility script to convert RHDH docs from adoc to plain text."""
+
+import argparse
+import logging
+import subprocess
+import sys
+from pathlib import Path
+
+import yaml
+
+from lightspeed_rag_content.asciidoc import AsciidoctorConverter
+
+LOG = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+
+def process_node(node: dict, dir: Path = Path(), file_list: list[Path] = []) -> list:
+    """Process YAML node from the topic map."""
+    currentdir = dir
+    
+    if "Topics" in node:
+        currentdir = currentdir.joinpath(node["Dir"])
+        for subnode in node["Topics"]:
+            file_list = process_node(
+                subnode, dir=currentdir, file_list=file_list
+            )
+    else:
+        file_list.append(currentdir.joinpath(node["File"]))
+        
+    return file_list
+
+def get_file_list(topic_map: Path) -> list:
+    """Get list of ALL documentation files that should be processed."""
+    topic_map_file = Path().joinpath(topic_map).absolute()
+    with open(topic_map_file, "r") as fin:
+        parsed_topic_map_file = yaml.safe_load_all(fin)
+        mega_file_list: list = []
+        
+        for map in parsed_topic_map_file:
+            file_list: list = []
+            file_list = process_node(map, file_list=file_list)
+            mega_file_list = mega_file_list + file_list
+
+    return mega_file_list
+
+def get_arg_parser() -> argparse.ArgumentParser:
+    """Get argument parser for the RHDH asciidoc command."""
+    parser = argparse.ArgumentParser(
+        description="This command converts OpenShift AsciiDoc documentation to text format."
+    )
+
+    parser.add_argument(
+        "-i",
+        "--input-dir",
+        required=True,
+        type=Path,
+        help="The input directory containing AsciiDoc formatted documentation.",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        required=True,
+        type=Path,
+        help="The output directory for text",
+    )
+
+    parser.add_argument(
+        "-a",
+        "--attributes",
+        required=False,
+        type=str,
+        help="An optional file containing attributes",
+    )
+
+    parser.add_argument(
+        "-t",
+        "--topic-map",
+        required=True,
+        type=Path,
+        help="The topic map file",
+    )
+
+    return parser
+
+def main():
+    """Process AsciiDoc files."""  
+    parser = get_arg_parser()
+    args = parser.parse_args()
+    
+    file_list = get_file_list(args.topic_map)
+    
+    input_dir = args.input_dir.absolute()
+    output_dir = args.output_dir.absolute()
+    
+    adoc_text_converter = AsciidoctorConverter()
+
+    for filename in file_list:
+        input_file = input_dir.joinpath(filename.with_suffix(".adoc"))
+        output_file = output_dir.joinpath(filename.with_suffix(".txt"))
+
+        try:
+            adoc_text_converter.convert(input_file, output_file)
+        except subprocess.CalledProcessError as e:
+            LOG.exception(e.stderr)
+            LOG.exception(e.stdout)
+            continue
+
+    print(file_list)
+    
+if __name__ == "__main__":
+    try:
+        main()
+    except FileNotFoundError as e:
+        LOG.exception(e)
+        sys.exit(1)

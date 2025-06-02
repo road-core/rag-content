@@ -165,3 +165,8 @@ embeddings_model/
 # postgres vector store sample
 postgresql/
 output/
+
+# Generated files
+ocp-product-docs-plaintext
+rhdh-product-docs-plaintext
+rhdh-docs-topic-map
