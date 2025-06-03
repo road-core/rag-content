@@ -1,3 +1,7 @@
+> [!CAUTION]
+> Heads up! All future work on the rag-content repository has moved to [lightspeed-core/rag-content](https://github.com/lightspeed-core/rag-content).
+> Please direct all your pull requests there unless you're absolutely sure you need to do otherwise.
+
 # Road RAG content
 
 Road Rag Content provides a shared codebase for generating Retrieval-Augmented
